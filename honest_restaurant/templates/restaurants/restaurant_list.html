@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}식당 목록 | 정직식당{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── 검색/필터 폼 ── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+  .filter-bar input,
+  .filter-bar select {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: #fff;
+    flex: 1;
+    min-width: 140px;
+  }
+  .filter-bar button {
+    padding: 0.45rem 1.2rem;
+    background: #1a1a2e;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .filter-bar button:hover { background: #e76f51; }
+
+  /* ── 결과 헤더 ── */
+  .result-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+  }
+
+  /* ── 카드 그리드 ── */
+  .restaurant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .restaurant-card {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1.1rem 1.2rem;
+    transition: box-shadow 0.2s;
+  }
+  .restaurant-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.09); }
+
+  .card-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .card-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-right: 4px;
+    margin-bottom: 0.5rem;
+  }
+  .badge-open     { background: #d4edda; color: #155724; }
+  .badge-veteran  { background: #fff3cd; color: #856404; }
+  .badge-type     { background: #e7f1ff; color: #1a4fa0; }
+
+  .card-meta { font-size: 0.82rem; color: #6c757d; line-height: 1.7; }
+  .card-meta span { display: block; }
+
+  /* ── 빈 상태 ── */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 0;
+    color: #adb5bd;
+    font-size: 0.95rem;
+  }
+
+  /* ── 페이지네이션 ── */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 2rem;
+  }
+  .pagination a, .pagination span {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-size: 0.87rem;
+    background: #fff;
+  }
+  .pagination a:hover    { background: #1a1a2e; color: #fff; border-color: #1a1a2e; }
+  .pagination .current   { background: #e76f51; color: #fff; border-color: #e76f51; }
+</style>
+{% endblock %}
+
+
+{% block content %}
+
+<h2 style="font-size:1.35rem; font-weight:700; margin-bottom:1.2rem;">
+  서울시 식당 목록
+</h2>
+
+{# ── 검색 / 필터 폼 ── #}
+<form method="get" class="filter-bar">
+  <input
+    type="text"
+    name="search"
+    placeholder="가게명·주소 검색"
+    value="{{ request.GET.search }}"
+  />
+  <select name="district">
+    <option value="">전체 자치구</option>
+    {% for d in district_choices %}
+      <option value="{{ d }}" {% if request.GET.district == d %}selected{% endif %}>{{ d }}</option>
+    {% endfor %}
+  </select>
+  <select name="business_type">
+    <option value="">전체 업태</option>
+    {% for b in business_type_choices %}
+      <option value="{{ b }}" {% if request.GET.business_type == b %}selected{% endif %}>{{ b }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">검색</button>
+</form>
+
+{# ── 결과 건수 ── #}
+<p class="result-meta">총 {{ total_count }}개 식당</p>
+
+{# ── 카드 목록 ── #}
+{% if restaurants %}
+  <div class="restaurant-grid">
+    {% for r in restaurants %}
+    <div class="restaurant-card">
+
+      <p class="card-name">{{ r.name }}</p>
+
+      {# 배지 #}
+      {% if r.is_open %}
+        <span class="card-badge badge-open">영업중</span>
+      {% endif %}
+      {% if r.is_veteran_store %}
+        <span class="card-badge badge-veteran">노포 {{ r.operating_years }}년</span>
+      {% endif %}
+      {% if r.business_type %}
+        <span class="card-badge badge-type">{{ r.business_type }}</span>
+      {% endif %}
+
+      {# 상세 정보 #}
+      <div class="card-meta">
+        {% if r.address_road %}
+          <span>📍 {{ r.address_road }}</span>
+        {% endif %}
+        {% if r.phone %}
+          <span>📞 {{ r.phone }}</span>
+        {% endif %}
+        {% if r.license_date %}
+          <span>📅 인허가 {{ r.license_date }}</span>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+{% else %}
+  <div class="empty-state">
+    <p>조건에 맞는 식당이 없습니다.</p>
+  </div>
+{% endif %}
+
+{# ── 페이지네이션 ── #}
+{% if restaurants.has_other_pages %}
+<div class="pagination">
+  {% if restaurants.has_previous %}
+    <a href="?page={{ restaurants.previous_page_number }}&{{ query_string }}">이전</a>
+  {% endif %}
+
+  {% for num in restaurants.paginator.page_range %}
+    {% if restaurants.number == num %}
+      <span class="current">{{ num }}</span>
+    {% elif num >= restaurants.number|add:"-3" and num <= restaurants.number|add:"3" %}
+      <a href="?page={{ num }}&{{ query_string }}">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if restaurants.has_next %}
+    <a href="?page={{ restaurants.next_page_number }}&{{ query_string }}">다음</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,28 @@
+/* =============================================
+   footer.css — 푸터 전용 스타일
+   경로: static/css/footer.css
+   ============================================= */
+
+.site-footer {
+  background : var(--color-primary);
+  color      : rgba(255, 255, 255, 0.67);
+  text-align : center;
+  padding    : 1.25rem 1rem;
+  font-size  : 0.82rem;
+  margin-top : auto;
+}
+
+.site-footer p + p {
+  margin-top: 0.4rem;
+}
+
+.site-footer a {
+  color     : var(--color-accent);
+  margin    : 0 0.4rem;
+  transition: opacity 0.2s;
+}
+
+.site-footer a:hover {
+  opacity: 0.8;
+  color  : var(--color-accent);
+}

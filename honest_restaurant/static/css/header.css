@@ -1,0 +1,40 @@
+/* =============================================
+   header.css — 헤더 전용 스타일
+   경로: static/css/header.css
+   ============================================= */
+
+.site-header {
+  background     : var(--color-primary);
+  color          : #fff;
+  padding        : 0 2rem;
+  height         : 60px;
+  display        : flex;
+  align-items    : center;
+  justify-content: space-between;
+  position       : sticky;
+  top            : 0;
+  z-index        : 100;
+}
+
+/* ── 로고 ── */
+.site-header .logo {
+  font-size     : 1.25rem;
+  font-weight   : 700;
+  letter-spacing: -0.5px;
+}
+
+.site-header .logo span {
+  color: var(--color-accent);
+}
+
+/* ── 네비게이션 ── */
+.site-header nav a {
+  color      : rgba(255, 255, 255, 0.8);
+  margin-left: 1.5rem;
+  font-size  : 0.9rem;
+  transition : color 0.2s;
+}
+
+.site-header nav a:hover {
+  color: #fff;
+}
