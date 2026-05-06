@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-box">
+    <h2 class="auth-title">로그아웃 완료</h2>
+    <p class="auth-msg">성공적으로 로그아웃되었습니다.</p>
+    <a href="{% url 'login' %}" class="auth-btn" style="display:inline-block;text-align:center;">다시 로그인</a>
+  </div>
+</div>
+{% endblock %}

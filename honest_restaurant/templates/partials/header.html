@@ -1,7 +1,24 @@
-<header class="site-header">
-  <a href="/" class="logo">정직<span>식당</span></a>
-  <nav>
-    <a href="{% url 'public_restaurants:restaurant-list-page' %}">식당 목록</a>
-    {# 추후 메뉴 추가 위치 #}
+<div class="hdr-wrapper">
+<div class="banner">2026 · 제3회 정직 가게 발굴 캠페인 — 동네 사장님의 진심을 디지털 자산으로</div>
+<header class="hdr">
+  <a href="/" class="hdr-logo">
+    <div class="hl-box"><span class="hl-kr">正</span></div>
+    <div>
+      <div style="font-family:var(--ff-poster);font-size:22px;color:var(--cream);letter-spacing:-1px">정직식당</div>
+      <div class="hl-en">HONEST RESTAURANT</div>
+    </div>
+  </a>
+  <nav class="hdr-nav" style="flex:1;justify-content:flex-end">
+    {% if request.user.is_authenticated %}
+      <span class="hdr-username">{{ request.user.username }}님</span>
+      <form method="post" action="/accounts/logout/" style="display:contents;"
+            onsubmit="return confirm('로그아웃 하시겠습니까?')">
+        {% csrf_token %}
+        <button type="submit" class="hdr-login">로그아웃</button>
+      </form>
+    {% else %}
+      <a href="/accounts/login/" class="hdr-login">로그인</a>
+    {% endif %}
   </nav>
 </header>
+</div>

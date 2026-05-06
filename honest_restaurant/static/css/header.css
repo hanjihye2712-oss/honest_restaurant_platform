@@ -1,40 +1,82 @@
-/* =============================================
-   header.css — 헤더 전용 스타일
-   경로: static/css/header.css
-   ============================================= */
+.banner {
+  background: var(--red);
+  color: var(--cream);
+  text-align: center;
+  padding: 8px 40px;
+  font-size: 12px;
+  letter-spacing: .3em;
+  font-family: var(--ff-body);
+}
 
-.site-header {
-  background     : var(--color-primary);
-  color          : #fff;
-  padding        : 0 2rem;
-  height         : 60px;
-  display        : flex;
-  align-items    : center;
+.hdr {
+  background: var(--navy);
+  padding: 0 40px;
+  display: flex;
   justify-content: space-between;
-  position       : sticky;
-  top            : 0;
-  z-index        : 100;
+  align-items: stretch;
 }
 
-/* ── 로고 ── */
-.site-header .logo {
-  font-size     : 1.25rem;
-  font-weight   : 700;
-  letter-spacing: -0.5px;
+.hdr-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.site-header .logo span {
-  color: var(--color-accent);
+.hdr-logo {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px 0;
+  text-decoration: none;
 }
 
-/* ── 네비게이션 ── */
-.site-header nav a {
-  color      : rgba(255, 255, 255, 0.8);
-  margin-left: 1.5rem;
-  font-size  : 0.9rem;
-  transition : color 0.2s;
+.hl-box { background: var(--red); padding: 10px 16px; margin-right: 12px; }
+.hl-kr { font-family: var(--ff-poster); font-size: 28px; color: var(--cream); letter-spacing: -1px; }
+.hl-en { font-size: 9px; color: rgba(245,237,208,.5); letter-spacing: .25em; }
+
+.hdr-nav {
+  display: flex;
+  align-items: stretch;
 }
 
-.site-header nav a:hover {
-  color: #fff;
+.hdr-nav a:not(.hdr-login) {
+  text-decoration: none;
+  color: rgba(245,237,208,.6);
+  font-size: 13px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid rgba(255,255,255,.08);
+  transition: all .2s;
+  letter-spacing: .05em;
+}
+
+.hdr-nav a:hover, .hdr-nav a.active {
+  background: var(--red);
+  color: var(--cream);
+}
+
+.hdr-username {
+  color: rgba(245,237,208,.7);
+  font-size: 13px;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  letter-spacing: .03em;
+}
+
+.hdr-login {
+  background: var(--navy);
+  color: var(--cream);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  border-left: none;
+  font-family: var(--ff-body);
+  letter-spacing: .05em;
+  text-decoration: none;
 }

@@ -202,3 +202,110 @@ class PublicRestaurantData(models.Model):
             models.Index(fields=["license_date"], name="idx_license_date"),
         ]
         ordering = ["-synced_at"]
+
+
+class RestaurantMedia(models.Model):
+    TYPE_IMAGE = "image"
+    TYPE_VIDEO = "video"
+    TYPE_CHOICES = [
+        (TYPE_IMAGE, "이미지"),
+        (TYPE_VIDEO, "동영상"),
+    ]
+
+    restaurant = models.ForeignKey(
+        PublicRestaurantData,
+        on_delete=models.CASCADE,
+        related_name="media",
+    )
+    uploaded_by = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        verbose_name="업로더",
+    )
+    file = models.FileField(upload_to="restaurant_media/")
+    media_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.restaurant.name} — {self.get_media_type_display()}"
+
+    class Meta:
+        ordering = ["uploaded_at"]
+        verbose_name = "식당 미디어"
+        verbose_name_plural = "식당 미디어"
+
+
+class ReceiptVerification(models.Model):
+    STATUS_PENDING  = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES  = [
+        (STATUS_PENDING,  "검토 중"),
+        (STATUS_APPROVED, "인증 완료"),
+        (STATUS_REJECTED, "인증 거부"),
+    ]
+
+    restaurant = models.ForeignKey(
+        PublicRestaurantData,
+        on_delete=models.CASCADE,
+        related_name="verifications",
+    )
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        verbose_name="신청자",
+    )
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        verbose_name="인증 상태",
+    )
+    receipt_image = models.ImageField(
+        upload_to="receipts/",
+        verbose_name="영수증 이미지",
+        blank=True,
+        null=True,
+    )
+    comment = models.TextField(
+        blank=True,
+        verbose_name="한 줄 후기",
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.restaurant.name} — {self.user} ({self.get_status_display()})"
+
+    class Meta:
+        unique_together = ["restaurant", "user"]
+        verbose_name = "영수증 인증"
+        verbose_name_plural = "영수증 인증"
+
+
+class Review(models.Model):
+    RATING_CHOICES = [(i, f"{i}점") for i in range(1, 6)]
+
+    restaurant = models.ForeignKey(
+        PublicRestaurantData,
+        on_delete=models.CASCADE,
+        related_name="reviews",
+    )
+    author = models.ForeignKey(
+        "auth.User",
+        on_delete=models.CASCADE,
+        verbose_name="작성자",
+    )
+    rating = models.PositiveSmallIntegerField(
+        choices=RATING_CHOICES,
+        verbose_name="별점",
+    )
+    content = models.TextField(verbose_name="리뷰 내용")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.restaurant.name} — {self.author} ({self.rating}점)"
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "리뷰"
+        verbose_name_plural = "리뷰"

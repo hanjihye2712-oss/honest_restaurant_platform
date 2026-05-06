@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}영수증 인증 | {{ restaurant.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/index.css' %}">
+<link rel="stylesheet" href="{% static 'css/restaurant_list.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="detail-back">
+  <a href="{% url 'public_restaurants:restaurant-detail-page' restaurant.pk %}">← 상세 페이지로</a>
+</div>
+
+{% if existing and existing.status == 'pending' %}
+<div class="verify-status-banner verify-pending">
+  검토 중입니다. 관리자 확인 후 인증이 완료됩니다.
+</div>
+{% elif existing and existing.status == 'approved' %}
+<div class="verify-status-banner verify-approved">
+  인증이 완료되었습니다.
+</div>
+{% elif existing and existing.status == 'rejected' %}
+<div class="verify-status-banner verify-rejected">
+  인증이 거부되었습니다. 다시 제출해주세요.
+</div>
+{% endif %}
+
+<div class="receipt-poster">
+
+  <!-- ── 왼쪽: 업로드 폼 ── -->
+  <div>
+    <div class="reward-poster">인증 완료시 100원 포인트 적립!</div>
+    <div class="rp-title">영수증<br>인증하기</div>
+    <div class="rp-sub">{{ restaurant.name }}의 가격을 함께 검증해주세요</div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <!-- 업로드 영역 -->
+      <div class="upload-poster" id="upload-area" onclick="document.getElementById('id_receipt_image').click()">
+        <div class="up-icon">
+          {% if existing and existing.receipt_image %}
+            🖼️
+          {% else %}
+            🗒️
+          {% endif %}
+        </div>
+        <div class="up-title" id="upload-title">
+          {% if existing and existing.receipt_image %}
+            이전 영수증 등록됨
+          {% else %}
+            영수증 업로드
+          {% endif %}
+        </div>
+        <div class="up-sub" id="upload-sub">드래그하거나 클릭 · JPG PNG · 10MB</div>
+        <button type="button" class="btn-poster-p-sm" onclick="event.stopPropagation(); document.getElementById('id_receipt_image').click()">
+          파일 선택
+        </button>
+        <input type="file" id="id_receipt_image" name="receipt_image"
+               accept="image/jpeg,image/png" style="display:none"
+               onchange="previewFile(this)">
+      </div>
+      {% if form.receipt_image.errors %}
+        <div style="color:var(--red);font-size:12px;margin-bottom:8px;">{{ form.receipt_image.errors.0 }}</div>
+      {% endif %}
+
+      <!-- 한 줄 후기 -->
+      <textarea name="comment" rows="3"
+        placeholder="가격·음식·분위기 한 줄 후기 (선택)"
+        class="rp-review">{{ form.comment.value|default:'' }}</textarea>
+
+      <button type="submit" class="btn-poster-p" style="width:100%;padding:16px;font-size:16px;">
+        인증 제출 — 100원 받기
+      </button>
+    </form>
+  </div>
+
+  <!-- ── 오른쪽: OCR 결과 패널 ── -->
+  <div>
+    <div class="ocr-poster">
+      <div class="op-head">
+        <span>OCR 분석 결과</span>
+        <span class="op-match">영수증 업로드 후 자동 분석</span>
+      </div>
+      <table class="op-table">
+        <thead>
+          <tr>
+            <th>메뉴</th>
+            <th>등록가</th>
+            <th>영수증</th>
+            <th>결과</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4" style="text-align:center;color:var(--muted);padding:20px 16px;font-size:13px;">
+              영수증을 업로드하면<br>자동으로 분석됩니다.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="op-sum">
+        <span>합계</span>
+        <span style="color:var(--muted);">-</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function previewFile(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    document.getElementById('upload-title').textContent = file.name;
+    document.getElementById('upload-sub').textContent =
+      (file.size / 1024 / 1024).toFixed(1) + 'MB';
+  }
+}
+</script>
+
+{% endblock %}

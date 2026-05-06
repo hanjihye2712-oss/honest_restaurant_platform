@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-box">
+    <h2 class="auth-title">회원가입</h2>
+    <form method="post" class="auth-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <ul class="errorlist">
+          {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% for field in form %}
+        <p>
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.errors %}
+            <ul class="errorlist">
+              {% for error in field.errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            {% if field.help_text %}
+              <ul><li class="helptext">{{ field.help_text }}</li></ul>
+            {% endif %}
+          {% endif %}
+        </p>
+      {% endfor %}
+      <button type="submit" class="auth-btn">가입</button>
+    </form>
+    <a href="{% url 'login' %}" class="auth-link">이미 계정이 있으신가요?</a>
+  </div>
+</div>
+{% endblock %}

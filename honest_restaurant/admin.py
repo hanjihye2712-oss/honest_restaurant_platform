@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import PublicRestaurantData
+from .models import PublicRestaurantData, ReceiptVerification, Review
 
 
 @admin.register(PublicRestaurantData)
@@ -131,3 +131,24 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
             text_color,  # {} 두 번째
             label,       # {} 세 번째
         )
+
+@admin.register(ReceiptVerification)
+class ReceiptVerificationAdmin(admin.ModelAdmin):
+    list_display  = ["restaurant", "user", "status", "submitted_at"]
+    list_filter   = ["status"]
+    search_fields = ["restaurant__name", "user__username"]
+    actions       = ["approve", "reject"]
+
+    @admin.action(description="선택 항목 인증 승인")
+    def approve(self, request, queryset):
+        queryset.update(status=ReceiptVerification.STATUS_APPROVED)
+
+    @admin.action(description="선택 항목 인증 거부")
+    def reject(self, request, queryset):
+        queryset.update(status=ReceiptVerification.STATUS_REJECTED)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    list_display  = ["restaurant", "author", "rating", "created_at"]
+    search_fields = ["restaurant__name", "author__username"]
