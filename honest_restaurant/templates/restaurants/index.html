@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/index.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/restaurant_list.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -156,7 +157,153 @@
       </div>
     </article>
 
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">2</span>
+      </div>
+      <div class="pc-img pci5"></div>
+      <div class="pc-body">
+        <div class="pc-gov">위생등급 우수</div>
+        <div class="pc-name">충무로 순대국밥</div>
+        <div class="pc-meta">한식·국밥 · 충무로 · 28년 노포</div>
+        <div class="pc-quote">"새벽에 직접 우려낸 육수만 씁니다."</div>
+        <div class="pc-foot">
+          <span>영수증 63건</span>
+          <span>일치율 97%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">4</span>
+      </div>
+      <div class="pc-img pci6"></div>
+      <div class="pc-body">
+        <div class="pc-gov">모범음식점 · 착한가격업소</div>
+        <div class="pc-name">마포 생선구이</div>
+        <div class="pc-meta">한식·생선 · 마포구 · 17년</div>
+        <div class="pc-quote">"손질은 전날 밤부터, 굽는 건 손님 앞에서."</div>
+        <div class="pc-foot">
+          <span>영수증 118건</span>
+          <span>일치율 100%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">3</span>
+      </div>
+      <div class="pc-img pci7"></div>
+      <div class="pc-body">
+        <div class="pc-gov">착한가격업소</div>
+        <div class="pc-name">을지로 냉면집</div>
+        <div class="pc-meta">한식·냉면 · 을지로 · 40년 노포</div>
+        <div class="pc-quote">"면발은 매일 아침 직접 뽑습니다."</div>
+        <div class="pc-foot">
+          <span>영수증 204건</span>
+          <span>일치율 99%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">2</span>
+      </div>
+      <div class="pc-img pci8"></div>
+      <div class="pc-body">
+        <div class="pc-gov">위생등급 우수</div>
+        <div class="pc-name">서촌 두부전골</div>
+        <div class="pc-meta">한식·전골 · 서촌 · 12년</div>
+        <div class="pc-quote">"두부는 국산 콩으로만 만듭니다."</div>
+        <div class="pc-foot">
+          <span>영수증 41건</span>
+          <span>일치율 95%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">3</span>
+      </div>
+      <div class="pc-img pci9"></div>
+      <div class="pc-body">
+        <div class="pc-gov">모범음식점</div>
+        <div class="pc-name">망원동 보쌈집</div>
+        <div class="pc-meta">한식·보쌈 · 망원동 · 22년</div>
+        <div class="pc-quote">"매일 직접 담근 겉절이가 전부입니다."</div>
+        <div class="pc-foot">
+          <span>영수증 77건</span>
+          <span>일치율 98%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">1</span>
+      </div>
+      <div class="pc-img pci10"></div>
+      <div class="pc-body">
+        <div class="pc-gov">·</div>
+        <div class="pc-name">낙원동 해장국</div>
+        <div class="pc-meta">한식·해장국 · 낙원동 · 9년</div>
+        <div class="pc-quote">"24시간 끓인 뼈 국물만 씁니다."</div>
+        <div class="pc-foot">
+          <span>영수증 19건</span>
+          <span>일치율 94%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">4</span>
+      </div>
+      <div class="pc-img pci11"></div>
+      <div class="pc-body">
+        <div class="pc-gov">모범음식점 · 위생등급 우수</div>
+        <div class="pc-name">삼청동 한정식</div>
+        <div class="pc-meta">한식·한정식 · 삼청동 · 31년 노포</div>
+        <div class="pc-quote">"제철 재료만, 메뉴는 계절마다 바뀝니다."</div>
+        <div class="pc-foot">
+          <span>영수증 331건</span>
+          <span>일치율 100%</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="postcard" onclick="show('detail')">
+      <div class="pc-stamp">
+        <span class="pc-stamp-lv">LV</span>
+        <span class="pc-stamp-num">2</span>
+      </div>
+      <div class="pc-img pci12"></div>
+      <div class="pc-body">
+        <div class="pc-gov">착한가격업소</div>
+        <div class="pc-name">신당동 떡볶이</div>
+        <div class="pc-meta">분식·떡볶이 · 신당동 · 15년</div>
+        <div class="pc-quote">"양념은 매일 아침 새로 만들어요."</div>
+        <div class="pc-foot">
+          <span>영수증 52건</span>
+          <span>일치율 96%</span>
+        </div>
+      </div>
+    </article>
+
   </div>
+
+  <div style="height: 80px;"></div>
 </div>
 
 <!-- DETAIL -->
@@ -177,8 +324,12 @@
         재료비가 올라도 손님 부담 안 주려고 양을 줄이지 않았습니다.
         동네 손님 87명이 직접 영수증으로 검증한 정직 가게입니다.
       </p>
+      <div class="dp-body">
+        <strong>도로명</strong> 서울특별시 종로구 수표로28길 17-1, 1층 (익선동)<br>
+        <strong>지번</strong> 서울특별시 종로구 익선동 166-3 1층<br>
+        <strong>전화</strong> 02-742-3985
+      </div>
       <div class="dp-actions">
-        <button class="btn-poster-p" onclick="show('receipt')">영수증 인증하기</button>
         <button class="btn-poster-s">길찾기</button>
       </div>
     </div>
@@ -214,15 +365,15 @@
         <div class="mp-title">메뉴 · 등록가</div>
         <div class="mp-row">
           <span>김밥</span>
-          <span class="mp-price">3,500원</span>
+          <span class="mp-price">2,000원</span>
         </div>
         <div class="mp-row">
           <span>참치김밥</span>
-          <span class="mp-price">4,500원</span>
+          <span class="mp-price">2,500원</span>
         </div>
         <div class="mp-row">
           <span>라면</span>
-          <span class="mp-price">4,000원</span>
+          <span class="mp-price">3,000원</span>
         </div>
         <div class="mp-row">
           <span>떡볶이</span>
@@ -230,6 +381,58 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- 리뷰 섹션 -->
+  <div class="review-section">
+
+    <div class="review-header">
+      <h3 class="review-title">리뷰 <span class="review-count">3</span></h3>
+    </div>
+
+    {% if not request.user.is_authenticated %}
+    <div class="review-login-prompt">
+      <a href="{% url 'login' %}">로그인</a> 후 리뷰를 작성할 수 있습니다.
+    </div>
+    {% else %}
+    <div class="review-login-prompt review-locked">
+      <div class="review-locked-inner">
+        <div>
+          <span class="review-lock-icon">🔒</span>
+          <strong>영수증 인증 완료 후 리뷰를 작성할 수 있습니다.</strong><br>
+        </div>
+        <button class="btn-poster-p" onclick="show('receipt')" style="white-space:nowrap;">영수증 인증하기</button>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="review-list">
+      <div class="review-item">
+        <div class="review-item-head">
+          <span class="review-author">김정직</span>
+          <span class="review-stars">★★★★★</span>
+          <span class="review-date">2026.04.28</span>
+        </div>
+        <div class="review-content">20년 단골입니다. 가격도 맛도 변함없어서 믿고 옵니다.</div>
+      </div>
+      <div class="review-item">
+        <div class="review-item-head">
+          <span class="review-author">익선동러버</span>
+          <span class="review-stars">★★★★☆</span>
+          <span class="review-date">2026.05.01</span>
+        </div>
+        <div class="review-content">영수증 확인해보니 메뉴판이랑 딱 맞았어요. 진짜 정직한 가게.</div>
+      </div>
+      <div class="review-item">
+        <div class="review-item-head">
+          <span class="review-author">점심단골</span>
+          <span class="review-stars">★★★★★</span>
+          <span class="review-date">2026.05.04</span>
+        </div>
+        <div class="review-content">참치김밥이 특히 맛있고 양도 넉넉합니다. 사장님도 친절하세요.</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -450,20 +653,22 @@ document.getElementById('searchForm').addEventListener('submit', function(e) {
   }
 });
 
+const _isAuthenticated = "{% if request.user.is_authenticated %}true{% else %}false{% endif %}" === 'true';
+const _loginUrl = "{% url 'login' %}";
+
 function show(n) {
+  if (!_isAuthenticated && (n === 'detail' || n === 'receipt')) {
+    location.href = _loginUrl + '?next=/';
+    return;
+  }
   ['home', 'detail', 'receipt', 'owner'].forEach(s => {
     document.getElementById('s-' + s).style.display = s === n ? 'block' : 'none';
-
-    const b = document.getElementById('n-' + s);
-    if (b) {
-      b.classList.toggle('active', s === n);
-    }
   });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
+if (new URLSearchParams(location.search).get('owner') === '1') {
+  show('owner');
 }
 </script>
 {% endblock %}

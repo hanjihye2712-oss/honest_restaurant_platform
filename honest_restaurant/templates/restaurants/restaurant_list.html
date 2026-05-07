@@ -60,7 +60,6 @@
             <th class="col-type">업태</th>
             <th class="col-address">주소</th>
             <th class="col-phone">전화번호</th>
-            <th class="col-date">인허가일</th>
           </tr>
         </thead>
 
@@ -85,7 +84,7 @@
                   <span class="badge badge-veteran">노포 {{ r.operating_years }}년</span>
                 {% endif %}
 
-                {% if r.category_name %}
+                {% if r.category_name and r.category_name != "영업" %}
                   <span class="badge badge-category">{{ r.category_name }}</span>
                 {% endif %}
               </div>
@@ -113,9 +112,6 @@
               {{ r.phone|default:"-" }}
             </td>
 
-            <td class="col-date">
-              {{ r.license_date|default:"-" }}
-            </td>
           </tr>
           {% endfor %}
         </tbody>

@@ -27,3 +27,23 @@
   background: var(--red);
   color: var(--cream);
 }
+
+.site-footer {
+  background: var(--navy);
+  color: rgba(245,237,208,.6);
+  text-align: center;
+  padding: 24px 40px;
+  font-size: 12px;
+  letter-spacing: .04em;
+  border-top: 3px solid var(--red);
+}
+
+.site-footer a {
+  color: rgba(245,237,208,.5);
+  text-decoration: none;
+  margin: 0 6px;
+}
+
+.site-footer a:hover {
+  color: var(--cream);
+}

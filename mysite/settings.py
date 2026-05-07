@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 import os
 from celery.schedules import crontab
 
@@ -43,9 +44,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'honest_restaurant',  # 앱 추가
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'honest_restaurant',
     'django_filters',
-    'accounts'
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'accounts.context_processors.user_role',
             ],
         },
     },
@@ -123,6 +128,59 @@ USE_TZ = True
 
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "accounts.authentication.CookieJWTAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/day",
+        "user": "1000/day",
+        "login": "5/minute",   # 로그인 엔드포인트 전용
+    },
+}
+
+# ── JWT 보안 설정 ──────────────────────────────────────────────────────────────
+SIMPLE_JWT = {
+    # 토큰 유효기간
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1440),   # 15분 -> 24시간 (현재 개발용으로 늘려놓음)
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),       # 7일 -> 30일 (현재 개발용으로 늘려놓음)
+
+    # 리프레시할 때마다 새 리프레시 토큰 발급 + 기존 토큰 블랙리스트 등록
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+
+    # 알고리즘: HS256 (대칭키, 단일 서버 적합)
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+
+    # 토큰 타입 검증 강제
+    "VERIFY_EXP": True,
+
+    # 헤더 설정 (Authorization: Bearer <token>)
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+
+    # 토큰 내 사용자 식별 필드
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+
+    # 쿠키 이름
+    "AUTH_COOKIE": "access_token",
+    "AUTH_COOKIE_REFRESH": "refresh_token",
+
+    # 쿠키 보안 설정
+    "AUTH_COOKIE_SECURE": not DEBUG,        # 개발 환경에서는 False, 운영에서 True (HTTPS 전용)
+    "AUTH_COOKIE_HTTP_ONLY": True,          # JS에서 쿠키 접근 불가 (XSS 방어)
+    "AUTH_COOKIE_SAMESITE": "Lax",         # CSRF 방어 (크로스사이트 요청 차단)
+    "AUTH_COOKIE_PATH": "/",
+    "AUTH_COOKIE_DOMAIN": None,             # 운영 시 도메인 명시 권장
 }
 
 

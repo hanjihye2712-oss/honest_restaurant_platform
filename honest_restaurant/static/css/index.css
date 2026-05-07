@@ -27,14 +27,28 @@
 .postcard:hover { transform: rotate(0deg) translateY(-4px); }
 .postcard:nth-child(odd) { transform: rotate(-.4deg); }
 .postcard:nth-child(odd):hover { transform: rotate(0deg) translateY(-4px); }
-.pc-stamp { position: absolute; top: 12px; right: 12px; width: 52px; height: 62px; border: 1.5px solid var(--tan); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
-.pc-stamp-lv { font-family: var(--ff-poster); font-size: 10px; color: var(--red); }
-.pc-stamp-num { font-family: var(--ff-poster); font-size: 22px; color: var(--navy); line-height: 1; }
-.pc-img { height: 130px; }
-.pci1 { background: linear-gradient(160deg, #8B1F1F, #2C1208); }
-.pci2 { background: linear-gradient(160deg, #1B5E4A, #0A2010); }
-.pci3 { background: linear-gradient(160deg, #5A3010, #2A1000); }
-.pci4 { background: linear-gradient(160deg, #1A2744, #0A1020); }
+.pc-stamp { position: absolute; top: 8px; right: 8px; width: 40px; height: 48px; border: 1.5px solid rgba(245,237,208,.8); background: rgba(0,0,0,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.pc-stamp-lv { font-family: var(--ff-poster); font-size: 9px; color: var(--red); }
+.pc-stamp-num { font-family: var(--ff-poster); font-size: 20px; color: var(--cream); line-height: 1; }
+.pc-img {
+  height: 130px;
+  border-bottom: 1px solid var(--tan);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.pci1  { background-image: url('/static/img/gimbap.jpg'); }       /* 김밥집 */
+.pci2  { background-image: url('/static/img/kalguksu.jpg'); }      /* 손칼국수 */
+.pci3  { background-image: url('/static/img/bibimbap.jpg'); }      /* 백반집 */
+.pci4  { background-image: url('/static/img/tteok.jpg'); }         /* 떡집 */
+.pci5  { background-image: url('/static/img/gukbap.jpg'); }        /* 순대국밥 */
+.pci6  { background-image: url('/static/img/pajeon.jpg'); }        /* 생선구이 */
+.pci7  { background-image: url('/static/img/naengmyeon.jpg'); }    /* 냉면집 */
+.pci8  { background-image: url('/static/img/doenjang.jpg'); }      /* 두부전골 */
+.pci9  { background-image: url('/static/img/bossam.jpg'); }        /* 보쌈집 */
+.pci10 { background-image: url('/static/img/haejangguk.jpg'); }    /* 해장국 */
+.pci11 { background-image: url('/static/img/hanjeongsik.jpg'); }   /* 한정식 */
+.pci12 { background-image: url('/static/img/tteokbokki.jpg'); }    /* 떡볶이 */
 .pc-body { padding: 14px 16px 18px; border-top: 2px solid var(--tan); }
 .pc-gov { font-size: 10px; color: var(--red); font-weight: 700; letter-spacing: .1em; margin-bottom: 6px; }
 .pc-name { font-family: var(--ff-deco); font-size: 18px; color: var(--navy); margin-bottom: 4px; line-height: 1.3; }
@@ -47,7 +61,13 @@
 .dp-tag { display: inline-block; background: var(--red); color: var(--cream); font-family: var(--ff-poster); font-size: 14px; padding: 5px 14px; margin-bottom: 14px; letter-spacing: .05em; }
 .dp-title { font-family: var(--ff-poster); font-size: 56px; color: var(--navy); line-height: 1.05; margin-bottom: 8px; letter-spacing: -2px; }
 .dp-meta { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
-.dp-img { width: 100%; height: 220px; background: linear-gradient(160deg, #2C1208, #8B1F1F); margin-bottom: 20px; border: 2px solid var(--navy); }
+.dp-img {
+  width: 100%;
+  height: 220px;
+  background: url('/static/img/gimbap.jpg') center / cover no-repeat;
+  margin-bottom: 20px;
+  border: 2px solid var(--navy);
+}
 .dp-pull { font-family: var(--ff-deco); font-size: 22px; color: var(--red); line-height: 1.5; padding: 16px 0; border-top: 3px solid var(--navy); border-bottom: 3px solid var(--navy); margin-bottom: 20px; }
 .dp-body { font-size: 14px; line-height: 1.8; color: var(--ink); margin-bottom: 20px; }
 .dp-actions { display: flex; gap: 10px; }

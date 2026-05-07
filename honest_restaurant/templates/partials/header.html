@@ -9,6 +9,9 @@
     </div>
   </a>
   <nav class="hdr-nav" style="flex:1;justify-content:flex-end">
+    {% if user_role == 'owner' or user_role == 'admin' %}
+    <button class="hdr-owner-btn" onclick="goOwner()">사장님 전용</button>
+    {% endif %}
     {% if request.user.is_authenticated %}
       <span class="hdr-username">{{ request.user.username }}님</span>
       <form method="post" action="/accounts/logout/" style="display:contents;"
@@ -20,5 +23,14 @@
       <a href="/accounts/login/" class="hdr-login">로그인</a>
     {% endif %}
   </nav>
+  <script>
+    function goOwner() {
+      if (typeof show === 'function') {
+        show('owner');
+      } else {
+        location.href = '/?owner=1';
+      }
+    }
+  </script>
 </header>
 </div>
