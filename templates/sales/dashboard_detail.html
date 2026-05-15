@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | 정직순대국{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sales/sales.css' %}">
+<link rel="stylesheet" href="{% static 'css/sales/detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="detail-page">
+
+  <!-- 헤더 -->
+  <div class="detail-header">
+    <a class="detail-back" href="/dashboard/">← 대시보드</a>
+    <h2>{{ title }}</h2>
+  </div>
+
+  <!-- KPI: 이달 매출 + 전달 대비 증감 -->
+  <div class="detail-kpi">
+    <div class="dkpi-box dkpi-box--full">
+      <span class="dkpi-label">{{ month_label }} 매출</span>
+      <div class="dkpi-value-row">
+        <span class="dkpi-value">{{ total_rev }}원</span>
+        {% if change_str %}
+          <span class="dkpi-change {% if change_up %}change-up{% else %}change-down{% endif %}">{{ change_str }}</span>
+        {% endif %}
+      </div>
+      {% if change_str %}
+        <span class="dkpi-sub">전달 대비</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="detail-grid">
+
+    <!-- 이달의 메뉴별 현황 (< > 네비게이션) -->
+    <div class="detail-section">
+      <div class="ds-head">
+        <h3>메뉴별 현황</h3>
+        <div class="month-nav">
+          <button class="mnav-btn" id="btn-menu-prev">&#8249;</button>
+          <span class="mnav-label" id="menu-month-label"></span>
+          <button class="mnav-btn" id="btn-menu-next">&#8250;</button>
+        </div>
+      </div>
+      <ul class="detail-list" id="menu-table">
+        <li class="dl-header">
+          <span class="dl-name">메뉴</span>
+          <span class="dl-qty">수량</span>
+          <span class="dl-rev">매출</span>
+        </li>
+        <li class="dl-empty">불러오는 중…</li>
+      </ul>
+    </div>
+
+    <!-- 월별 매출 -->
+    <div class="detail-section">
+      <div class="ds-head">
+        <h3>월별 매출</h3>
+        <div class="month-nav">
+          <button class="mnav-btn" id="btn-rev-prev">&#8249;</button>
+          <span class="mnav-label" id="rev-year-label"></span>
+          <button class="mnav-btn" id="btn-rev-next">&#8250;</button>
+        </div>
+      </div>
+      <ul class="detail-list" id="rev-year-list">
+        <li class="dl-empty">불러오는 중…</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- 월별 매출 그래프 -->
+  <div class="detail-section detail-section--full" style="margin-top:24px;">
+    <div class="ds-head"><h3>월별 매출 추이</h3></div>
+    <div class="ds-body-pad">
+      <canvas id="monthlyRevChart" height="120"></canvas>
+    </div>
+  </div>
+
+</section>
+
+<!-- JS 데이터 전달 -->
+<script id="monthly-menu-data" type="application/json">{{ monthly_menu_json|safe }}</script>
+<script id="rev-2025-data"     type="application/json">{{ rev_2025_json|safe }}</script>
+<script id="rev-2026-data"     type="application/json">{{ rev_2026_json|safe }}</script>
+<script id="chart-data"        type="application/json">
+  {"labels": {{ chart_labels_json|safe }}, "data": {{ chart_data_json|safe }}}
+</script>
+<script id="page-meta"         type="application/json">
+  {"currentMonthKey": "{{ current_month_key }}"}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/sales/detail.js' %}"></script>
+{% endblock %}

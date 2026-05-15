@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import PublicRestaurantData, ReceiptVerification, Review
+from .models import PublicRestaurantData, ReceiptVerification
 
 
 @admin.register(PublicRestaurantData)
@@ -12,10 +12,10 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
         "district",
         "business_type",
         "sanitation_business_type",
-        "status_badge",          # 커스텀 컬럼
+        "status_badge",
         "license_date",
-        "operating_years",       # 모델 프로퍼티
-        "is_veteran_store",      # 모델 프로퍼티
+        "operating_years",
+        "is_veteran_store",
         "synced_at",
     ]
 
@@ -72,7 +72,6 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
                 "fields": [
                     "sanitation_business_type",
                     "license_date",
-                    "license_cancel_date",
                     "status_code",
                     "area",
                     "last_modified_at",
@@ -148,7 +147,3 @@ class ReceiptVerificationAdmin(admin.ModelAdmin):
         queryset.update(status=ReceiptVerification.STATUS_REJECTED)
 
 
-@admin.register(Review)
-class ReviewAdmin(admin.ModelAdmin):
-    list_display  = ["restaurant", "author", "rating", "created_at"]
-    search_fields = ["restaurant__name", "author__username"]

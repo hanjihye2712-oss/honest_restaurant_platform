@@ -26,13 +26,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cj8+v@ic2w6*&8-fzareu&_1@3ux7fuqk-eq0dq*bjw8x5pldo'
-SEOUL_API_KEY = os.getenv('SEOUL_API_KEY', '') # 환경변수에서 API 키 읽기, 없으면 기본값 사용
+SECRET_KEY            = os.getenv('SECRET_KEY')
+SEOUL_API_KEY         = os.getenv('SEOUL_API_KEY',         '')
+NATIONAL_API_KEY      = os.getenv('NATIONAL_API_KEY',      '')
+NATIONAL_API_URL      = os.getenv('NATIONAL_API_URL',      '')
+KAKAO_MAP_API_KEY     = os.getenv('KAKAO_MAP_API_KEY',     '')
+KAKAO_REST_API_KEY    = os.getenv('KAKAO_REST_API_KEY',    '')
+TOSS_CLIENT_KEY       = os.getenv('TOSS_CLIENT_KEY',       '')
+TOSS_SECRET_KEY       = os.getenv('TOSS_SECRET_KEY',       '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = []
+
+# 외부 SDK(카카오맵 등) 로드 시 Referer 헤더 전달을 위해 변경
+# same-origin(기본값)은 크로스오리진 요청에 Referer를 보내지 않아 Kakao 403 발생
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 
 # Application definition
@@ -44,12 +54,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',       # 추가
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'honest_restaurant',
+    'allauth',                    # 추가
+    'allauth.account',            # 추가
+    'allauth.socialaccount',      # 추가
+    'allauth.socialaccount.providers.kakao',   # 추가
+    'allauth.socialaccount.providers.naver',   # 추가
     'django_filters',
+    'honest_restaurant',
     'accounts',
+    'interactions',
+    'marketing',
+    'sales',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +79,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -68,8 +88,12 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
+        'APP_DIRS': False,
         'OPTIONS': {
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ],
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -118,7 +142,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -183,10 +207,16 @@ SIMPLE_JWT = {
     "AUTH_COOKIE_DOMAIN": None,             # 운영 시 도메인 명시 권장
 }
 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 CELERY_BEAT_SCHEDULE = {
     "sync-seoul-restaurants": {
-        "task": "your_app.tasks.daily_sync",
+        "task": "honest_restaurant.tasks.daily_sync",
         "schedule": crontab(hour=3, minute=0),  # 매일 새벽 3시
     },
 }
@@ -211,4 +241,12 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/"
+ACCOUNT_LOGOUT_REDIRECT_URL = "/"
+
+# ── 세션 설정 ──────────────────────────────────────────────────────────────
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # 2주
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False

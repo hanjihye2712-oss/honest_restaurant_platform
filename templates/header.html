@@ -1,0 +1,55 @@
+<div class="hdr-wrapper">
+<div class="banner">2026 · 제3회 정직 가게 발굴 캠페인 — 동네 사장님의 진심을 디지털 자산으로</div>
+<header class="hdr">
+  <a href="/" class="hdr-logo">
+    <div class="hl-box"><span class="hl-kr">正</span></div>
+    <div>
+      <div style="font-family:var(--ff-poster);font-size:22px;color:var(--cream);letter-spacing:-1px">정직식당</div>
+      <div class="hl-en">HONEST RESTAURANT</div>
+    </div>
+  </a>
+  <nav class="hdr-nav" style="flex:1;justify-content:flex-end">
+    {% if not request.user.is_authenticated %}
+      <a href="/accounts/login/" class="hdr-login">로그인</a>
+    {% endif %}
+    <button type="button" class="hdr-hamburger" id="btn-sidenav" aria-label="메뉴 열기" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  {% load static %}
+  <script src="{% static 'js/header.js' %}"></script>
+</header>
+</div>
+
+{# ── 사이드 패널 (헤더 아래, 오른쪽 슬라이딩) ── #}
+<div class="sidenav-overlay" id="sidenav-overlay"></div>
+<aside class="sidenav" id="sidenav" aria-hidden="true">
+  {% if request.user.is_authenticated %}
+  <div class="sidenav-user">
+    <span>{{ request.user.first_name|default:request.user.username }}님</span>
+    <button type="button" class="sidenav-logout" id="btn-logout">로그아웃</button>
+  </div>
+  {% endif %}
+  <nav class="sidenav-nav">
+    <a href="/accounts/me/" class="sidenav-item">
+      <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+      내 정보
+    </a>
+    <a href="/bookmarks/" class="sidenav-item">
+      <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 3h14a1 1 0 0 1 1 1v17l-8-4-8 4V4a1 1 0 0 1 1-1z"/>
+      </svg>
+      북마크
+    </a>
+    {% if user_role == 'owner' or user_role == 'admin' %}
+    <button type="button" class="sidenav-item sidenav-item-btn" onclick="goOwner()">
+      <svg class="sidenav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      사장님 전용
+    </button>
+    {% endif %}
+  </nav>
+</aside>

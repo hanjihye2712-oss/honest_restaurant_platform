@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}사장님 대시보드 | 정직식당{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/restaurant_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/marketing/marketing.css' %}">
+<link rel="stylesheet" href="{% static 'css/sales/sales.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="owner-poster">
+  <div style="margin-bottom:16px">
+    <div class="owner-title">골목장인 · 사장님 대시보드</div>
+    <p class="owner-sub">김OO 사장님 · 오늘도 23명의 손님이 영수증을 인증했어요</p>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-poster">
+    <div class="kp-box">
+      <div class="kp-lbl">신뢰 단계</div>
+      <div class="kp-val">LV3</div>
+      <div class="kp-sub">신뢰 증명</div>
+      <div class="kp-bar"><div class="kp-fill" style="width:78%"></div></div>
+    </div>
+    <div class="kp-box">
+      <div class="kp-lbl">이번 달 인증</div>
+      <div class="kp-val navy">23건</div>
+      <div class="kp-sub up">↑ +15%</div>
+    </div>
+    <div class="kp-box">
+      <div class="kp-lbl">가격 일치율</div>
+      <div class="kp-val navy">98%</div>
+      <div class="kp-sub">매우 우수</div>
+    </div>
+    <div class="kp-box">
+      <div class="kp-lbl">이번 달 매출</div>
+      <div class="kp-val" style="font-size:24px;color:var(--navy)">412만</div>
+      <div class="kp-sub up">↑ +8.2%</div>
+    </div>
+  </div>
+
+  <!-- 블록 그리드 -->
+  <div class="owner-poster-grid">
+
+    {% include "marketing/partials/marketing_block.html" %}
+
+    <!-- 재고 알림 -->
+    <div class="opg-block">
+      <div class="opg-head">
+        <h3>재고 알림</h3>
+        <span class="opg-tag">PRO</span>
+      </div>
+      <div class="opg-body">
+        <div class="alert-poster">
+          <span style="font-size:20px">🌡️</span>
+          <div class="ap-txt">
+            <strong>금~토 기온 32도</strong>
+            <p>아이스 음료 재료 +30%</p>
+          </div>
+        </div>
+        <div class="alert-poster">
+          <span style="font-size:20px">🎓</span>
+          <div class="ap-txt">
+            <strong>수요일 대학 축제</strong>
+            <p>테이크아웃 컵 50개</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 최근 영수증 -->
+    <div class="opg-block">
+      <div class="opg-head"><h3>최근 영수증</h3></div>
+      <div class="opg-body">
+        <ul class="rec-poster">
+          <li><span>김밥 2개 + 라면 1개</span><span style="color:var(--muted);font-size:11px">3시간 전</span></li>
+          <li><span>참치김밥 1개</span><span style="color:var(--muted);font-size:11px">5시간 전</span></li>
+          <li><span>떡볶이 1개</span><span style="color:var(--muted);font-size:11px">어제</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 가게 스토리 -->
+    <div class="opg-block">
+      <div class="opg-head"><h3>가게 스토리</h3></div>
+      <div class="opg-body">
+        <p class="arc-text">인터뷰 녹음만 하면 AI가 인스타·블로그·유튜브 자막까지 자동 생성합니다.</p>
+        <div class="arc-badge">노포 아카이브 참여 중</div>
+      </div>
+    </div>
+
+    {% include "sales/dashboard_chart.html" %}
+
+  </div>
+</div>
+
+{% include "marketing/partials/marketing_modal.html" %}
+{% endblock %}
+
+{% block extra_js %}
+<div id="index-meta" style="display:none;"
+     data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+     data-login-url="{% url 'login' %}"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/marketing/marketing.js' %}"></script>
+<script src="{% static 'js/sales/dashboard.js' %}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof renderHistory === 'function') renderHistory();
+  });
+</script>
+{% endblock %}

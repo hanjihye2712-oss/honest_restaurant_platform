@@ -1,7 +1,10 @@
 from celery import shared_task
-from .services.seoul_api import fetch_restaurants, save_restaurants, BATCH_SIZE
+
+from honest_restaurant.views import SeoulRestaurantSyncer
+
 
 @shared_task
 def daily_sync():
-    rows = fetch_restaurants(1, BATCH_SIZE)
-    save_restaurants(rows)
+    syncer = SeoulRestaurantSyncer()
+    rows   = syncer.fetch(1, SeoulRestaurantSyncer.BATCH_SIZE)
+    syncer.save(rows)

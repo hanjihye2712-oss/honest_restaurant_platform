@@ -1,31 +1,36 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import (PublicRestaurantDataViewSet, restaurant_list_page, index_page,
-                    restaurant_detail_page, receipt_verify_page,
-                    media_upload, media_delete)
-
-app_name = "public_restaurants"   # 임시 네임스페이스
-
-# ── API 라우터 (JSON) ──────────────────────────
-router = DefaultRouter()
-router.register(
-    prefix   = "public-restaurants",
-    viewset  = PublicRestaurantDataViewSet,
-    basename = "public-restaurant",   # 임시 basename
+from .views import (
+    IndexView,
+    MediaDeleteView,
+    MediaUploadView,
+    OwnerDashboardView,
+    ReceiptVerifyView,
+    RestaurantDetailView,
+    RestaurantListView,
+    RestaurantViewSet,
+    VerifyCancelView,
 )
 
+app_name = "public_restaurants"
+
+router = DefaultRouter()
+router.register("public-restaurants", RestaurantViewSet, basename="public-restaurant")
+
+# restaurants/<int:pk>/ 하위 URL — 공통 prefix 한 번만 선언
+_restaurant_detail_urls = [
+    path("",                             RestaurantDetailView.as_view(), name="restaurant-detail-page"),
+    path("verify/",                      ReceiptVerifyView.as_view(),    name="restaurant-verify"),
+    path("verify/cancel/",               VerifyCancelView.as_view(),     name="verify-cancel"),
+    path("media/upload/",                MediaUploadView.as_view(),      name="media-upload"),
+    path("media/<int:media_pk>/delete/", MediaDeleteView.as_view(),      name="media-delete"),
+]
+
 urlpatterns = [
-    # 메인 페이지
-    path("", index_page, name="index"),
-
-    # JSON API
-    path("api/", include(router.urls)),
-
-    # 템플릿 페이지 (HTML)
-    path("restaurants/", restaurant_list_page, name="restaurant-list-page"),
-    path("restaurants/<int:pk>/", restaurant_detail_page, name="restaurant-detail-page"),
-    path("restaurants/<int:pk>/verify/", receipt_verify_page, name="restaurant-verify"),
-    path("restaurants/<int:pk>/media/upload/", media_upload, name="media-upload"),
-    path("restaurants/<int:pk>/media/<int:media_pk>/delete/", media_delete, name="media-delete"),
+    path("",            IndexView.as_view(),          name="index"),
+    path("dashboard/",  OwnerDashboardView.as_view(), name="owner-dashboard"),
+    path("api/",                      include(router.urls)),
+    path("restaurants/",              RestaurantListView.as_view(), name="restaurant-list-page"),
+    path("restaurants/<int:pk>/",     include(_restaurant_detail_urls)),
 ]

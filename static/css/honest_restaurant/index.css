@@ -1,0 +1,90 @@
+/* ── 포스터 히어로 ── */
+.poster-hero { background: var(--cream); border-bottom: 4px solid var(--navy); position: relative; overflow: hidden; }
+.ph-inner { max-width: 1200px; margin: 0 auto; padding: 52px 40px; display: grid; grid-template-columns: auto 1fr; gap: 60px; align-items: center; }
+.ph-left { position: relative; }
+.seal-big { width: 140px; height: 140px; background: var(--red); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 8px solid var(--navy); position: relative; }
+.seal-big::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 2px dashed rgba(245,237,208,.4); }
+.sb-kr { font-family: var(--ff-poster); font-size: 44px; color: var(--cream); line-height: 1; }
+.sb-en { font-size: 9px; color: rgba(245,237,208,.7); letter-spacing: .2em; margin-top: 2px; }
+.ph-eyebrow { font-size: 11px; letter-spacing: .3em; color: var(--red); font-weight: 700; margin-bottom: 12px; }
+.ph-title { font-family: var(--ff-poster); font-size: 64px; line-height: 1.05; color: var(--navy); margin-bottom: 10px; letter-spacing: -2px; }
+.ph-title em { color: var(--red); font-style: normal; }
+.ph-rule { height: 4px; background: var(--navy); width: 80px; margin-bottom: 14px; }
+.ph-sub { font-size: 16px; color: var(--muted); margin-bottom: 28px; line-height: 1.7; }
+.ph-search { display: flex; max-width: 540px; border: 2px solid var(--navy); overflow: hidden; }
+.ph-search input { flex: 1; padding: 14px 18px; border: none; background: var(--paper); font-size: 14px; font-family: var(--ff-body); outline: none; color: var(--ink); }
+.ph-search button { background: var(--navy); color: var(--cream); border: none; padding: 0 28px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--ff-body); letter-spacing: .05em; }
+.ph-stats { display: flex; gap: 0; margin-top: 20px; border-top: 2px solid var(--navy); }
+.ps { padding: 14px 24px 0; border-right: 1px solid var(--tan); }
+.ps:last-child { border-right: none; }
+.ps-n { font-family: var(--ff-poster); font-size: 32px; color: var(--red); line-height: 1; }
+.ps-l { font-size: 11px; color: var(--muted); margin-top: 3px; letter-spacing: .05em; }
+.ph-deco { position: absolute; right: 0; top: 0; bottom: 0; width: 200px; opacity: .06; font-family: var(--ff-poster); font-size: 300px; color: var(--navy); display: flex; align-items: center; pointer-events: none; overflow: hidden; }
+
+/* ── 엽서형 카드 그리드 ── */
+.postcard-grid { max-width: 1200px; margin: 0 auto; padding: 32px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+.postcard { background: var(--cream); border: 1px solid var(--tan); position: relative; cursor: pointer; transition: transform .2s; }
+.postcard:hover { transform: rotate(0deg) translateY(-4px); }
+.postcard:nth-child(odd) { transform: rotate(-.4deg); }
+.postcard:nth-child(odd):hover { transform: rotate(0deg) translateY(-4px); }
+.pc-stamp { position: absolute; top: 8px; right: 8px; width: 40px; height: 48px; border: 1.5px solid rgba(245,237,208,.8); background: rgba(0,0,0,.45); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.pc-stamp-lv { font-family: var(--ff-poster); font-size: 9px; color: var(--red); }
+.pc-stamp-num { font-family: var(--ff-poster); font-size: 20px; color: var(--cream); line-height: 1; }
+.pc-img {
+  height: 130px;
+  border-bottom: 1px solid var(--tan);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.pci1  { background-image: url('/static/img/honest_restaurant/gimbap.jpg'); }       /* 김밥집 */
+.pci2  { background-image: url('/static/img/honest_restaurant/kalguksu.jpg'); }      /* 손칼국수 */
+.pci3  { background-image: url('/static/img/honest_restaurant/bibimbap.jpg'); }      /* 백반집 */
+.pci4  { background-image: url('/static/img/honest_restaurant/tteok.jpg'); }         /* 떡집 */
+.pci5  { background-image: url('/static/img/honest_restaurant/gukbap.jpg'); }        /* 순대국밥 */
+.pci6  { background-image: url('/static/img/honest_restaurant/pajeon.jpg'); }        /* 생선구이 */
+.pci7  { background-image: url('/static/img/honest_restaurant/naengmyeon.jpg'); }    /* 냉면집 */
+.pci8  { background-image: url('/static/img/honest_restaurant/doenjang.jpg'); }      /* 두부전골 */
+.pci9  { background-image: url('/static/img/honest_restaurant/bossam.jpg'); }        /* 보쌈집 */
+.pci10 { background-image: url('/static/img/honest_restaurant/haejangguk.jpg'); }    /* 해장국 */
+.pci11 { background-image: url('/static/img/honest_restaurant/hanjeongsik.jpg'); }   /* 한정식 */
+.pci12 { background-image: url('/static/img/honest_restaurant/tteokbokki.jpg'); }    /* 떡볶이 */
+.pc-body { padding: 14px 16px 18px; border-top: 2px solid var(--tan); }
+.pc-gov { font-size: 10px; color: var(--red); font-weight: 700; letter-spacing: .1em; margin-bottom: 6px; }
+.pc-name { font-family: var(--ff-deco); font-size: 18px; color: var(--navy); margin-bottom: 4px; line-height: 1.3; }
+.pc-meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+.pc-quote { font-size: 12px; color: var(--ink); line-height: 1.55; padding: 8px 10px; background: var(--paper); border-left: 3px solid var(--red); margin-bottom: 10px; font-style: italic; }
+.pc-foot { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding-top: 8px; border-top: 1px dashed var(--tan); }
+
+/* ── 상세 섹션 (목업) — restaurant_detail.css와 공유하는 클래스 보완 ── */
+.dp-left  { min-width: 0; }
+.dp-right { min-width: 0; }
+.dp-img   { height: 220px; background: var(--paper); border: 2px solid var(--navy); margin-bottom: 20px; }
+
+
+/* ── 영수증 인증 섹션 (목업) ── */
+.receipt-poster    { max-width: 1100px; margin: 0 auto; padding: 32px 40px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+.reward-poster     { display: inline-block; background: var(--red); color: var(--cream); font-family: var(--ff-deco); font-size: 13px; padding: 8px 16px; margin-bottom: 16px; letter-spacing: .05em; }
+.rp-title          { font-family: var(--ff-poster); font-size: 48px; color: var(--navy); line-height: 1.05; margin-bottom: 12px; letter-spacing: -2px; }
+.rp-sub            { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+.rp-review         { width: 100%; box-sizing: border-box; border: 2px solid var(--tan); background: var(--paper); font-family: var(--ff-body); font-size: 14px; color: var(--ink); padding: 12px 14px; resize: vertical; outline: none; margin-top: 16px; min-height: 80px; display: block; }
+.ocr-poster        { background: var(--navy); color: var(--cream); padding: 24px; }
+.op-head           { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.op-head span:first-child { font-family: var(--ff-deco); font-size: 15px; }
+.op-match          { color: var(--tan); font-size: 13px; font-weight: 700; }
+.op-table          { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 12px; }
+.op-table th       { padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,.2); font-size: 11px; letter-spacing: .05em; color: rgba(245,237,208,.6); text-align: left; }
+.op-table td       { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.op-ok             { color: var(--tan); font-weight: 700; }
+.op-sum            { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.2); font-size: 13px; font-weight: 700; }
+
+/* ── 인덱스 목업 리뷰 섹션 ── */
+.review-login-prompt        { font-size: 14px; color: var(--muted); padding: 16px; background: var(--paper); border: 1px solid var(--tan); margin-bottom: 16px; }
+.review-locked              { display: block; }
+.review-locked .review-locked-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.review-item                { background: var(--cream); border: 1px solid var(--tan); padding: 16px; margin-bottom: 12px; }
+.review-item-head           { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.review-author              { font-weight: 700; font-size: 14px; color: var(--navy); }
+.review-stars               { color: var(--red); letter-spacing: 2px; }
+.review-date                { font-size: 12px; color: var(--muted); margin-left: auto; }
+.review-content             { font-size: 13px; color: var(--ink); line-height: 1.7; }

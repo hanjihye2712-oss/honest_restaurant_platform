@@ -1,0 +1,54 @@
+.dp-title-row { display: flex; align-items: center; gap: 12px; }
+
+.heart-wrap { position: relative; display: inline-flex; align-items: center; }
+
+.heart-wrap::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 50%;
+  bottom: -28px;
+  transform: translateX(-50%);
+  background: hotpink;
+  color: #fff;
+  font-size: 12px;
+  font-family: var(--ff-body);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.heart-wrap:hover::after { opacity: 1; }
+.heart-wrap.no-tooltip::after { opacity: 0 !important; }
+
+.btn-heart {
+  background: none; border: none; cursor: pointer;
+  padding: 0; line-height: 1;
+  display: inline-flex; align-items: center;
+  transition: transform 0.15s;
+}
+.btn-heart:hover { transform: scale(1.15); }
+
+/* 기본 상태: 외곽선만 */
+.btn-heart .heart-path {
+  fill: none;
+  stroke: #bbb;
+  stroke-width: 1.5;
+  transition: fill 0.15s, stroke 0.15s, stroke-width 0.15s;
+}
+
+/* 마우스 올리면 채워진 핫핑크 (no-hover 상태면 억제) */
+.btn-heart:hover:not(.no-hover) .heart-path {
+  fill: #FF1493;
+  stroke: white;
+  stroke-width: 1;
+}
+
+/* 북마크 저장 상태: 항상 채워진 핫핑크 */
+.btn-heart.bookmarked .heart-path {
+  fill: #FF1493;
+  stroke: white;
+  stroke-width: 1;
+}

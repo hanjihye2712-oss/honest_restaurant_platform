@@ -25,6 +25,7 @@ class PublicRestaurantData(models.Model):
 
     name = models.CharField(
         max_length=200,
+        db_index=True,
         verbose_name="업소명",
         help_text="[필수] 사업자등록증 명칭과 자동 대조 → LV2 검증",
     )
@@ -43,12 +44,20 @@ class PublicRestaurantData(models.Model):
         help_text="[필수] 도로명 주소 보완용",
     )
 
+    province = models.CharField(
+        max_length=20,
+        blank=True,
+        db_index=True,
+        verbose_name="시/도",
+        help_text="address_road 첫 번째 토큰에서 자동 추출 (예: 서울특별시, 경기도, 부산광역시)",
+    )
+
     district = models.CharField(
         max_length=20,
         blank=True,
         db_index=True,
-        verbose_name="자치구",
-        help_text="[필수] 1단계 MVP 종로구 필터링, 이후 구별 확장 대응 / 상권별 분석 & 지자체 B2G 리포트",
+        verbose_name="자치구/시/군",
+        help_text="주소의 두 번째 단위 (구·시·군). 상권별 분석 & 지자체 B2G 리포트",
     )
 
     phone = models.CharField(
@@ -90,13 +99,6 @@ class PublicRestaurantData(models.Model):
         db_index=True,
         verbose_name="인허가일자",
         help_text="[필수] 영업 기간 계산 → LV4 '6개월 이상 안정적 운영' 조건 / 노포 판별(10년+) → 아카이브 프로젝트 자동 추천",
-    )
-
-    license_cancel_date = models.DateField(
-        null=True,
-        blank=True,
-        verbose_name="인허가취소일자",
-        help_text="[필수] 폐업·취소 가게 자동 감지 → 검증 배지 즉시 회수 / 매일 배치(Celery beat)로 상태 동기화",
     )
 
     # 영업상태 코드값 상수
@@ -190,16 +192,35 @@ class PublicRestaurantData(models.Model):
         return years is not None and years >= 10
 
     def __str__(self):
-        return f"[{self.district}] {self.name} ({self.get_status_code_display()})"
+        return f"[{self.province or self.district}] {self.name} ({self.get_status_code_display()})"
 
     class Meta:
         db_table = "public_restaurant_data"
-        verbose_name = "서울시 공공 식당 데이터"
-        verbose_name_plural = "서울시 공공 식당 데이터"
+        verbose_name = "공공 음식점 데이터"
+        verbose_name_plural = "공공 음식점 데이터"
         indexes = [
-            models.Index(fields=["district", "status_code"], name="idx_district_status"),
-            models.Index(fields=["latitude", "longitude"], name="idx_lat_lng"),
-            models.Index(fields=["license_date"], name="idx_license_date"),
+            models.Index(fields=["district", "status_code"],  name="idx_district_status"),
+            models.Index(fields=["latitude",  "longitude"],   name="idx_lat_lng"),
+            models.Index(fields=["license_date"],             name="idx_license_date"),
+
+            # ❶ 기본 목록: WHERE status_code='01' ORDER BY synced_at DESC
+            models.Index(fields=["status_code", "synced_at"], name="idx_status_synced"),
+            # ❷ 시/도 필터 + 정렬
+            models.Index(fields=["province", "status_code", "synced_at"], name="idx_province_status_synced"),
+            # ❸ 자치구 필터 + 정렬
+            models.Index(fields=["district", "status_code", "synced_at"], name="idx_district_status_synced"),
+            # ❹ 업태 필터 + 정렬
+            models.Index(fields=["business_type", "status_code", "synced_at"], name="idx_biztype_status_synced"),
+            # ❺ 이름 검색
+            models.Index(fields=["name"], name="idx_name"),
+        ]
+        constraints = [
+            # 도로명주소가 있는 경우: 상호명+도로명주소+업태 중복 방지
+            models.UniqueConstraint(
+                fields=["name", "address_road", "business_type"],
+                condition=models.Q(address_road__gt=""),
+                name="uq_name_road_biztype",
+            ),
         ]
         ordering = ["-synced_at"]
 
@@ -282,30 +303,3 @@ class ReceiptVerification(models.Model):
         verbose_name_plural = "영수증 인증"
 
 
-class Review(models.Model):
-    RATING_CHOICES = [(i, f"{i}점") for i in range(1, 6)]
-
-    restaurant = models.ForeignKey(
-        PublicRestaurantData,
-        on_delete=models.CASCADE,
-        related_name="reviews",
-    )
-    author = models.ForeignKey(
-        "auth.User",
-        on_delete=models.CASCADE,
-        verbose_name="작성자",
-    )
-    rating = models.PositiveSmallIntegerField(
-        choices=RATING_CHOICES,
-        verbose_name="별점",
-    )
-    content = models.TextField(verbose_name="리뷰 내용")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.restaurant.name} — {self.author} ({self.rating}점)"
-
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name = "리뷰"
-        verbose_name_plural = "리뷰"

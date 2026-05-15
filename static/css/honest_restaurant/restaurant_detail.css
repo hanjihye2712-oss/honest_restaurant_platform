@@ -1,0 +1,78 @@
+/* ── 뒤로가기 ── */
+.detail-back { padding: 20px 40px 0; }
+.detail-back a { font-size: 13px; color: var(--muted); text-decoration: none; }
+.detail-back a:hover { color: var(--red); }
+
+/* ── 상세 레이아웃 ── */
+.detail-poster { max-width: 1100px; margin: 0 auto; padding: 32px 40px; display: grid; grid-template-columns: 1fr 360px; gap: 40px; }
+.dp-tag { display: inline-block; background: var(--red); color: var(--cream); font-family: var(--ff-poster); font-size: 14px; padding: 5px 14px; margin-bottom: 14px; letter-spacing: .05em; }
+.dp-title { font-family: var(--ff-poster); font-size: 56px; color: var(--navy); line-height: 1.05; margin-bottom: 8px; letter-spacing: -2px; }
+.dp-meta { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+.dp-pull { font-family: var(--ff-deco); font-size: 22px; color: var(--red); line-height: 1.5; padding: 16px 0; border-top: 3px solid var(--navy); border-bottom: 3px solid var(--navy); margin-bottom: 20px; }
+.dp-body { font-size: 14px; line-height: 1.8; color: var(--ink); margin-bottom: 20px; }
+.dp-actions { display: flex; gap: 10px; }
+
+/* ── 공통 버튼 ── */
+.btn-poster-p { background: var(--red); color: var(--cream); border: none; padding: 12px 28px; font-family: var(--ff-deco); font-size: 16px; cursor: pointer; letter-spacing: .05em; }
+.btn-poster-p:hover { background: #B01A10; }
+.btn-poster-s { background: transparent; color: var(--navy); border: 2px solid var(--navy); padding: 12px 28px; font-family: var(--ff-deco); font-size: 16px; cursor: pointer; }
+.btn-poster-p-sm { background: var(--navy); color: var(--cream); border: none; padding: 10px 22px; font-family: var(--ff-deco); font-size: 15px; cursor: pointer; }
+
+/* ── 신뢰 증명서 ── */
+.trust-poster { background: var(--navy); color: var(--cream); padding: 24px; margin-bottom: 16px; position: relative; }
+.trust-poster::before { content: '證'; position: absolute; right: 16px; top: 8px; font-family: var(--ff-poster); font-size: 80px; opacity: .08; color: var(--cream); }
+.tp-title { font-family: var(--ff-poster); font-size: 18px; color: var(--cream); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,.2); }
+.tp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+.tpg { text-align: center; }
+.tpg-val { font-family: var(--ff-poster); font-size: 30px; color: var(--tan); line-height: 1; }
+.tpg-lbl { font-size: 10px; color: rgba(245,237,208,.5); margin-top: 3px; letter-spacing: .05em; }
+.tp-prog { background: rgba(255,255,255,.1); height: 6px; margin-bottom: 6px; }
+.tp-fill { height: 100%; background: var(--red); }
+.tp-prog-lbl { font-size: 11px; color: rgba(245,237,208,.5); }
+
+/* ── 메뉴 ── */
+.menu-poster { background: var(--cream); border: 2px solid var(--navy); padding: 20px; position: relative; }
+.mp-title { font-family: var(--ff-deco); font-size: 16px; color: var(--navy); margin-bottom: 12px; border-bottom: 2px dashed var(--tan); padding-bottom: 8px; }
+.mp-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--tan); font-size: 13px; }
+.mp-row:last-child { border-bottom: none; }
+.mp-price { font-family: var(--ff-deco); color: var(--red); }
+
+/* ── 메뉴/주소 편집 오버레이 ── */
+.menu-editable { cursor: pointer; }
+.dp-body-editable { position: relative; cursor: pointer; }
+.dp-body-editable:hover .menu-edit-overlay { opacity: 1; }
+.menu-edit-overlay { position: absolute; inset: 0; background: rgba(255,255,255,.6); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+.menu-editable:hover .menu-edit-overlay { opacity: 1; }
+.menu-edit-btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; background: transparent; border: 2px dashed var(--navy); color: var(--navy); font-size: 14px; font-weight: 700; font-family: var(--ff-body); cursor: pointer; letter-spacing: .03em; transition: background 0.15s; }
+.menu-edit-btn:hover { background: var(--cream); }
+
+/* ── 미디어 슬라이더 ── */
+.media-slider { position: relative; width: 100%; height: 220px; overflow: hidden; border: 2px solid var(--navy); background: #fff; margin-bottom: 8px; }
+.media-track { width: 100%; height: 100%; }
+.media-slide { display: none; position: relative; width: 100%; height: 100%; }
+.media-slide.active { display: block; }
+.media-file { width: 100%; height: 220px; object-fit: cover; display: block; }
+.media-delete-form { position: absolute; top: 8px; right: 8px; z-index: 10; }
+.media-delete-btn { background: rgba(0,0,0,.55); color: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; font-size: 13px; cursor: pointer; line-height: 1; }
+.media-delete-btn:hover { background: var(--red); }
+.slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,.15); color: #fff; border: none; width: 26px; height: 26px; font-size: 16px; cursor: pointer; z-index: 10; line-height: 1; display: flex; align-items: center; justify-content: center; }
+.slider-btn:hover { background: rgba(0,0,0,.4); }
+.slider-prev { left: 8px; }
+.slider-next { right: 8px; }
+.slider-counter { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.5); color: #fff; font-size: 10px; padding: 1px 8px; border-radius: 999px; pointer-events: none; }
+.media-empty-box { width: 100%; height: 220px; background: #fff; border: 2px solid var(--navy); display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+.media-placeholder-text { color: var(--muted); font-size: 13px; }
+.media-upload-form { margin-bottom: 20px; }
+.media-upload-label { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; background: transparent; border: 2px dashed var(--navy); color: var(--navy); font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: .03em; }
+.media-upload-label:hover { background: var(--cream); }
+
+/* ── 전화번호 ── */
+.dp-phone { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 15px; }
+.dp-phone-label { background: var(--navy); color: var(--cream); font-size: 11px; font-weight: 700; padding: 3px 8px; letter-spacing: .08em; }
+.dp-phone a { color: var(--navy); font-weight: 700; text-decoration: none; }
+.dp-phone a:hover { color: var(--red); }
+
+/* ── 관리 매장 등록 버튼 ── */
+.btn-manage-register { background: var(--navy); color: var(--cream); border: none; padding: 6px 10px; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: .05em; border-radius: 2px; margin-left: 8px; }
+.btn-manage-register:hover { background: var(--red); }
+.btn-manage-tag { display: inline-block; background: #27ae60; color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 2px; margin-left: 8px; letter-spacing: .05em; }
