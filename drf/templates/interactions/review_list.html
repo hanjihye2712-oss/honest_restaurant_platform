@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}내 리뷰 | 정직식당{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/interactions/review_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="review-page">
+
+  <div class="review-header">
+    <h2>내 리뷰</h2>
+    <p>내가 작성한 리뷰 목록입니다.</p>
+  </div>
+
+  {% if reviews %}
+    <div class="review-count">총 <strong>{{ paginator.count }}</strong>개</div>
+    <div class="review-list">
+      {% for rv in reviews %}
+      <a href="{% url 'public_restaurants:restaurant-detail-page' rv.restaurant.pk %}"
+         class="review-card">
+        <div class="rvc-top">
+          <span class="rvc-name">{{ rv.restaurant.name }}</span>
+          <div class="rvc-meta">
+            {% if rv.my_rating %}
+            <span class="rvc-stars">
+              {% for i in "12345" %}{% if forloop.counter <= rv.my_rating %}★{% else %}☆{% endif %}{% endfor %}
+            </span>
+            {% endif %}
+            <span class="rvc-date">{{ rv.created_at|date:"Y.m.d" }}</span>
+          </div>
+        </div>
+        <div class="rvc-address">
+          {{ rv.restaurant.address_road|default:rv.restaurant.address_jibun|default:"-" }}
+        </div>
+        <div class="rvc-content">{{ rv.content }}</div>
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+    <nav class="pagination" aria-label="페이지 이동">
+      {% if page_obj.has_previous %}
+        <a class="page-btn" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+      {% else %}
+        <span class="page-btn disabled">&laquo;</span>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <span class="page-btn current">{{ num }}</span>
+        {% elif num >= page_obj.number|add:"-3" and num <= page_obj.number|add:"3" %}
+          <a class="page-btn" href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a class="page-btn" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+      {% else %}
+        <span class="page-btn disabled">&raquo;</span>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="review-empty">
+      <p>아직 작성한 리뷰가 없습니다.</p>
+      <a href="{% url 'public_restaurants:restaurant-list-page' %}" class="review-empty-btn">식당 둘러보기</a>
+    </div>
+  {% endif %}
+
+</section>
+{% endblock %}

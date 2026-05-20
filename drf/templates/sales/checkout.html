@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}결제 | 정직순대국{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/sales/sales.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+  <h1>정직순대국 주문 결제</h1>
+  <div id="payment-method"></div>
+  <div id="agreement"></div>
+  <button id="payment-button" class="pay-btn">랜덤 주문 결제하기</button>
+
+  {# JS에 서버 값을 안전하게 전달하는 meta 태그 #}
+  <meta id="toss-client-key" content="{{ toss_client_key }}">
+  <meta id="csrf-token"      content="{{ csrf_token }}">
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.tosspayments.com/v1/payment-widget"></script>
+<script src="{% static 'js/sales/checkout.js' %}"></script>
+{% endblock %}

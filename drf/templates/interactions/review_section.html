@@ -1,0 +1,129 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/interactions/review.css' %}">
+
+<section class="review-section" id="review-section"
+         data-restaurant-id="{{ restaurant.pk }}">
+
+  <!-- 헤더 -->
+  <div class="review-header-row">
+    <h3 class="review-title">리뷰 <span class="review-count">{{ reviews.count }}</span></h3>
+    <div class="review-sort-btns">
+      <a href="?sort=latest"
+         class="review-sort-btn {% if sort == 'latest' %}active{% endif %}">최신순</a>
+      <a href="?sort=score_high"
+         class="review-sort-btn {% if sort == 'score_high' %}active{% endif %}">별점높은순</a>
+      <a href="?sort=score_low"
+         class="review-sort-btn {% if sort == 'score_low' %}active{% endif %}">별점낮은순</a>
+    </div>
+  </div>
+
+  <!-- ── 비로그인 ── -->
+  {% if not request.user.is_authenticated %}
+  <div class="review-locked-box">
+    <div class="review-locked-inner">
+      <span class="review-lock-icon">🔒</span>
+      <span><a href="{% url 'login' %}">로그인</a> 후 리뷰를 작성할 수 있습니다.</span>
+    </div>
+  </div>
+
+  <!-- ── 로그인했지만 영수증 미인증 ── -->
+  {% elif not has_verified %}
+  <div class="review-locked-box">
+    <div class="review-locked-inner">
+      <div>
+        <span class="review-lock-icon">🔒</span>
+        <strong>영수증 인증 완료 후 리뷰를 작성할 수 있습니다.</strong>
+      </div>
+      <a href="{% url 'public_restaurants:restaurant-verify' restaurant.pk %}" class="btn-verify">
+        영수증 인증하기
+      </a>
+    </div>
+  </div>
+
+  <!-- ── 인증 완료 + 아직 리뷰 없음 → 작성 박스 ── -->
+  {% elif can_write and not my_review %}
+  <div class="review-form" id="review-create-box">
+    <div class="review-form-stars">
+      <input type="hidden" id="score-input">
+      <div data-rating data-form-field="score-input" data-current-score="0"></div>
+      <span class="review-error" id="score-error" style="display:none;">별점을 선택해주세요.</span>
+    </div>
+    <textarea id="review-content" rows="4"
+              placeholder="이 가게에 대한 솔직한 리뷰를 남겨주세요."></textarea>
+    <span class="review-error" id="content-error" style="display:none;">내용을 입력해주세요.</span>
+    <div class="review-form-actions">
+      <button type="button" class="btn-verify" id="btn-review-submit">리뷰 등록</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── 리뷰 목록 ── -->
+  {% if reviews %}
+  <ul class="review-list">
+    {% for review in reviews %}
+    <li class="review-card" id="review-{{ review.id }}">
+
+      <!-- 기본 보기 -->
+      <div class="review-view">
+        <div class="review-card-head">
+          <div class="review-card-left">
+            <span class="review-author">{{ review.user.username }}</span>
+            {% if review.user_score %}
+            <span class="review-stars">
+              {% for i in "12345" %}
+                {% if forloop.counter <= review.user_score %}
+                  <span class="star filled">★</span>
+                {% else %}
+                  <span class="star empty">☆</span>
+                {% endif %}
+              {% endfor %}
+            </span>
+            {% endif %}
+
+            {% if request.user == review.user %}
+            <span class="review-actions">
+              <button type="button" class="btn-review-action"
+                      data-action="edit"
+                      data-review-id="{{ review.id }}">수정</button>
+              <button type="button" class="btn-review-action btn-review-delete"
+                      data-action="delete"
+                      data-review-id="{{ review.id }}">삭제</button>
+            </span>
+            {% endif %}
+          </div>
+          <span class="review-date">{{ review.created_at|date:"Y.m.d" }}</span>
+        </div>
+        <p class="review-content">{{ review.content }}</p>
+      </div>
+
+      <!-- 수정 박스 (기본 숨김) -->
+      {% if request.user == review.user %}
+      <div class="review-edit-form" id="edit-form-{{ review.id }}" style="display:none;">
+        <div class="review-form-stars">
+          <input type="hidden" id="edit-score-{{ review.id }}"
+                 value="{{ review.user_score|default:'' }}">
+          <div data-rating
+               data-form-field="edit-score-{{ review.id }}"
+               data-current-score="{{ review.user_score|default:0 }}"></div>
+        </div>
+        <textarea id="edit-content-{{ review.id }}" rows="3">{{ review.content }}</textarea>
+        <div class="review-edit-actions">
+          <button type="button" class="btn-verify"
+                  style="font-size:14px;padding:8px 20px;"
+                  data-action="update"
+                  data-review-id="{{ review.id }}">저장</button>
+          <button type="button" class="btn-delete"
+                  data-action="cancel-edit"
+                  data-review-id="{{ review.id }}">취소</button>
+        </div>
+      </div>
+      {% endif %}
+
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="review-empty">아직 작성된 리뷰가 없습니다. 첫 번째 리뷰를 남겨보세요.</p>
+  {% endif %}
+
+</section>

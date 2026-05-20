@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}내 정보 | 정직식당{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/accounts/mypage.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="mypage">
+
+  {# ── 프로필 카드 ── #}
+  <div class="mp-profile">
+    <div class="mp-avatar">{{ avatar_letter }}</div>
+    <div class="mp-info">
+      <div class="mp-name">{{ user.first_name|default:user.username }}</div>
+      <div class="mp-role">{{ role_display }}</div>
+      <div class="mp-meta">
+        <span>아이디: {{ user.username }}</span>
+        <span>이메일: {{ user.email|default:"미등록" }}</span>
+        <br>
+        <span>가입일: {{ user.date_joined|date:"Y년 m월 d일" }}</span>
+      </div>
+    </div>
+    <div class="mp-actions">
+      <button type="button" class="mp-btn mp-btn-primary" id="btn-edit-profile">프로필 수정</button>
+      <a href="/accounts/password/change/" class="mp-btn mp-btn-outline">비밀번호 변경</a>
+    </div>
+  </div>
+
+  {# ── 통계 ── #}
+  <div class="mp-stats">
+    <a href="/bookmarks/" class="mp-stat mp-stat-link">
+      <div class="mp-stat-num">{{ bookmark_count }}</div>
+      <div class="mp-stat-label">북마크</div>
+    </a>
+    <a href="/reviews/" class="mp-stat mp-stat-link">
+      <div class="mp-stat-num">{{ review_count }}</div>
+      <div class="mp-stat-label">리뷰</div>
+    </a>
+    <div class="mp-stat">
+      <div class="mp-stat-num">
+        {% if rating_avg %}{{ rating_avg }}{% else %}—{% endif %}
+      </div>
+      <div class="mp-stat-label">평균 별점</div>
+    </div>
+  </div>
+
+
+</section>
+
+{# ── 프로필 수정 모달 ── #}
+<div class="mp-modal-overlay" id="modal-edit-profile">
+  <div class="mp-modal">
+    <button type="button" class="mp-modal-close" id="btn-modal-close" aria-label="닫기">×</button>
+    <div class="mp-modal-title">프로필 수정</div>
+
+    <div class="mp-alert" id="mp-alert"></div>
+
+    <form id="form-edit-profile" novalidate>
+      {% csrf_token %}
+      <div class="mp-field">
+        <label for="inp-nickname">닉네임 (표시 이름)</label>
+        <input type="text" id="inp-nickname" name="first_name" value="{{ user.first_name }}" maxlength="30">
+      </div>
+      <div class="mp-field">
+        <label for="inp-email">이메일</label>
+        <input type="email" id="inp-email" name="email" value="{{ user.email }}">
+        <div class="mp-field-hint">비밀번호 찾기 등에 사용됩니다.</div>
+      </div>
+      <button type="submit" class="mp-btn mp-btn-primary" style="width:100%;margin-top:8px">저장</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const overlay = document.getElementById('modal-edit-profile');
+  const btnOpen = document.getElementById('btn-edit-profile');
+  const btnClose = document.getElementById('btn-modal-close');
+  const alert   = document.getElementById('mp-alert');
+  const form    = document.getElementById('form-edit-profile');
+
+  btnOpen.addEventListener('click', () => overlay.classList.add('open'));
+  btnClose.addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+
+  function showAlert(msg, type) {
+    alert.textContent = msg;
+    alert.className = 'mp-alert ' + type;
+    alert.style.display = 'block';
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const data = {
+      first_name: form.querySelector('[name="first_name"]').value.trim(),
+      email:      form.querySelector('[name="email"]').value.trim(),
+    };
+    try {
+      const res = await axios.patch('/accounts/api/me/update/', data, {
+        headers: { 'X-CSRFToken': form.querySelector('[name="csrfmiddlewaretoken"]').value }
+      });
+      showAlert('저장되었습니다.', 'success');
+      setTimeout(() => location.reload(), 800);
+    } catch (err) {
+      const msg = err.response?.data?.detail || '저장 중 오류가 발생했습니다.';
+      showAlert(msg, 'error');
+    }
+  });
+})();
+</script>
+{% endblock %}

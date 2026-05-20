@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}영수증 인증 | {{ restaurant.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/restaurant_detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/restaurant_verify.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="detail-back">
+  <a href="{% url 'public_restaurants:restaurant-detail-page' restaurant.pk %}">← 상세 페이지로</a>
+</div>
+
+<div class="verify-center-wrap"
+     data-submit-url="{% url 'public_restaurants:restaurant-verify' restaurant.pk %}">
+
+  <div class="upload-poster" id="upload-area"
+       onclick="document.getElementById('id_receipt_image').click()">
+    <div class="up-icon">
+      {% if existing and existing.receipt_image %}🖼️{% else %}🗒️{% endif %}
+    </div>
+    <div class="up-title" id="upload-title">
+      {% if existing and existing.receipt_image %}이전 영수증 등록됨{% else %}영수증 업로드{% endif %}
+    </div>
+    <div class="up-sub" id="upload-sub">드래그하거나 클릭 · JPG PNG · 10MB</div>
+    <button type="button" class="btn-poster-p-sm"
+            onclick="event.stopPropagation(); document.getElementById('id_receipt_image').click()">
+      파일 선택
+    </button>
+    <input type="file" id="id_receipt_image" name="receipt_image"
+           accept="image/jpeg,image/png" style="display:none">
+  </div>
+
+  <div id="verify-error" style="color:var(--red);font-size:12px;margin-bottom:8px;display:none;"></div>
+
+  <button type="button" class="btn-poster-p verify-submit-btn" id="verify-submit-btn">
+    인증 제출
+  </button>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/honest_restaurant/restaurant_verify.js' %}"></script>
+{% endblock %}

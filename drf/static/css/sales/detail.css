@@ -1,0 +1,56 @@
+/* ===== 매출 상세 페이지 ===== */
+
+.detail-page        { max-width: 1100px; margin: 40px auto; padding: 0 24px 80px; }
+
+.detail-header      { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.detail-back        { font-size: 13px; color: var(--navy, #1a2744); text-decoration: none; }
+.detail-back:hover  { text-decoration: underline; }
+.detail-header h2   { font-family: var(--ff-poster, serif); font-size: 28px; color: var(--navy, #1a2744); margin: 0; }
+
+/* KPI */
+.detail-kpi         { margin-bottom: 24px; }
+.dkpi-box           { background: var(--cream, #f5f0e8); border: 2px solid var(--navy, #1a2744); padding: 20px 24px; }
+.dkpi-box--full     { width: 100%; }
+.dkpi-label         { display: block; font-size: 11px; letter-spacing: .1em; color: var(--muted, #888); font-weight: 700; margin-bottom: 6px; }
+.dkpi-value         { font-family: var(--ff-poster, serif); font-size: 28px; color: var(--navy, #1a2744); }
+.dkpi-value-row     { display: flex; align-items: baseline; gap: 12px; }
+.dkpi-change        { font-size: 14px; font-weight: 700; }
+.dkpi-sub           { display: block; font-size: 11px; color: var(--muted, #888); margin-top: 4px; }
+.change-up          { color: #155724; }
+.change-down        { color: #c0392b; }
+
+/* 그리드 */
+.detail-grid               { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+.detail-section            { background: var(--cream, #f5f0e8); border: 1px solid var(--tan, #e0d9cc); }
+.detail-section--full      { grid-column: 1 / -1; margin-bottom: 0; }
+
+/* 섹션 헤더 */
+.ds-head            { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 12px; border-bottom: 2px solid var(--navy, #1a2744); }
+.ds-head h3         { font-family: var(--ff-deco, serif); font-size: 15px; color: var(--navy, #1a2744); margin: 0; }
+.ds-tag             { font-size: 10px; font-weight: 700; background: var(--navy, #1a2744); color: var(--cream, #f5f0e8); padding: 2px 8px; letter-spacing: .05em; }
+.ds-body-pad        { padding: 16px 18px; }
+.ds-year-label      { font-size: 11px; font-weight: 700; letter-spacing: .08em; color: var(--muted, #888); padding: 8px 18px 4px; border-top: 1px solid var(--tan, #e0d9cc); }
+
+/* 리스트 */
+.detail-list        { list-style: none; padding: 0; margin: 0; max-height: 340px; overflow-y: auto; }
+.detail-list::-webkit-scrollbar       { width: 4px; }
+.detail-list::-webkit-scrollbar-track { background: transparent; }
+.detail-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 4px; }
+.dl-header          { display: flex; padding: 7px 18px; background: rgba(0,0,0,.04); }
+.dl-header span     { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted, #888); text-transform: uppercase; }
+.dl-row             { display: flex; align-items: center; padding: 9px 18px; border-bottom: 1px solid var(--tan, #e0d9cc); font-size: 13px; }
+.dl-row:last-child  { border-bottom: none; }
+.dl-row:hover       { background: rgba(0,0,0,.03); }
+.dl-empty           { padding: 20px 18px; font-size: 12px; color: var(--muted, #888); }
+.dl-total           { border-top: 2px solid var(--navy, #1a2744); background: rgba(26,39,68,.05); font-weight: 700; }
+.dl-name            { flex: 1; color: var(--ink, #333); }
+.dl-qty             { width: 80px; text-align: right; color: var(--navy, #1a2744); font-weight: 600; }
+.dl-rev             { width: 120px; text-align: right; color: var(--navy, #1a2744); font-weight: 600; }
+
+/* 월 네비게이션 (< 2026년 5월 >) */
+.month-nav          { display: flex; align-items: center; gap: 6px; }
+.mnav-btn           { background: none; border: 1px solid var(--tan, #e0d9cc); color: var(--navy, #1a2744); width: 24px; height: 24px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 2px; }
+.mnav-btn:hover:not(:disabled) { background: var(--navy, #1a2744); color: var(--cream, #f5f0e8); }
+.mnav-btn:disabled  { opacity: 0.3; cursor: default; }
+.mnav-label         { font-size: 12px; font-weight: 700; color: var(--navy, #1a2744); min-width: 80px; text-align: center; }
+
