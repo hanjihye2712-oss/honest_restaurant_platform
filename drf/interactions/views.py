@@ -23,7 +23,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from ai.ai_sentiment.models import SentimentResult
-from ai.ai_sentiment import tasks
+from ai.ai_sentiment import tasks as tasks_sentiment
+from ai.ai_fake_review.models import FakeReviewResult
+from ai.ai_fake_review import tasks as tasks_fake
 from honest_restaurant.models import ReceiptVerification
 from .models import Bookmark, Rating, Review
 from .serializers import BookmarkSerializer, RatingSerializer, ReviewSerializer
@@ -215,7 +217,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         review = serializer.save(user=self.request.user)
         SentimentResult.objects.create(review=review)
-        tasks.analyze_sentiment.delay(review.id, review.content)
+        FakeReviewResult.objects.create(review=review)
+        tasks_sentiment.analyze_sentiment.delay(review.id, review.content)
+        tasks_fake.check_fake_review.delay(review.id, review.content)
 
     def create(self, request, *args, **kwargs):
         restaurant_id = request.data.get("restaurant")
@@ -239,7 +243,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
         if "content" in serializer.validated_data:
             SentimentResult.reset_for_review(instance.id)
-            tasks.analyze_sentiment.delay(instance.id, instance.content)
+            FakeReviewResult.objects.filter(review=instance).update(
+                status=FakeReviewResult.STATUS_PENDING,
+                is_fake=None, confidence=None,
+                translated_text="", penalty_score=0,
+                analyzed_at=None, error_msg="",
+            )
+            tasks_sentiment.analyze_sentiment.delay(instance.id, instance.content)
+            tasks_fake.check_fake_review.delay(instance.id, instance.content)
 
         return Response(serializer.data)
 

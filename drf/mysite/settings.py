@@ -48,9 +48,14 @@ KAKAO_REST_API_KEY       = os.getenv('KAKAO_REST_API_KEY',       '')
 TOSS_CLIENT_KEY          = os.getenv('TOSS_CLIENT_KEY',          '')
 TOSS_SECRET_KEY          = os.getenv('TOSS_SECRET_KEY',          '')
 
-# ── FastAPI 감성 분석 서비스 ──────────────────────────────────────
-FASTAPI_SENTIMENT_URL     = os.getenv('FASTAPI_SENTIMENT_URL', 'http://localhost:8001/analyze')
+# ── FastAPI 서비스 ────────────────────────────────────────────────
+FASTAPI_SENTIMENT_URL     = os.getenv('FASTAPI_SENTIMENT_URL',  'http://localhost:8001/analyze')
 FASTAPI_SENTIMENT_TIMEOUT = int(os.getenv('FASTAPI_SENTIMENT_TIMEOUT', '10'))
+FASTAPI_FAKE_REVIEW_URL   = os.getenv('FASTAPI_FAKE_REVIEW_URL', 'http://localhost:8001/fake-review/detect')
+
+# ── 파파고 번역 API ───────────────────────────────────────────────
+PAPAGO_CLIENT_ID     = os.getenv('PAPAGO_CLIENT_ID',     '')
+PAPAGO_CLIENT_SECRET = os.getenv('PAPAGO_CLIENT_SECRET', '')
 
 # 외부 SDK(카카오맵 등) 로드 시 Referer 헤더 전달을 위해 변경
 # same-origin(기본값)은 크로스오리진 요청에 Referer를 보내지 않아 Kakao 403 발생
@@ -80,6 +85,7 @@ INSTALLED_APPS = [
     'accounts',
     'interactions',
     'ai.ai_sentiment',
+    'ai.ai_fake_review',
     'marketing',
     'sales',
 ]

@@ -35,7 +35,30 @@ class UserProfile(models.Model):
         return self.role in (self.ROLE_OWNER, self.ROLE_ADMIN)
 
 
+class UserTrustScore(models.Model):
+    """가짜 리뷰 탐지 시 패널티를 누적하는 신뢰 점수."""
+    INITIAL_SCORE = 100
+    PENALTY_FAKE  = -10
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="trust_score",
+    )
+    score      = models.IntegerField(default=INITIAL_SCORE, verbose_name="신뢰 점수")
+    fake_count = models.IntegerField(default=0, verbose_name="가짜 리뷰 누적 횟수")
+
+    def __str__(self):
+        return f"{self.user.username} — 점수: {self.score} / 가짜: {self.fake_count}건"
+
+    class Meta:
+        db_table     = "user_trust_score"
+        verbose_name = "사용자 신뢰 점수"
+        verbose_name_plural = "사용자 신뢰 점수"
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.get_or_create(user=instance)
+        UserTrustScore.objects.get_or_create(user=instance)
