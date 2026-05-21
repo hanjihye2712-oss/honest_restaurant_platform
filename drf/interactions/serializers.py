@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from ai.models import SentimentResult
-from ai.serializers import SentimentResultSerializer
+from ai.ai_sentiment.models import SentimentResult
+from ai.ai_sentiment.serializers import SentimentResultSerializer
 from .models import Bookmark, Rating, Review
 
 

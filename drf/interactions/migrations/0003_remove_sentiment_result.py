@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('interactions', '0002_add_sentiment_result'),
-        ('ai', '0001_initial'),
+        ('ai_sentiment', '0001_initial'),
     ]
 
     operations = [

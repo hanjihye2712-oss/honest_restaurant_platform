@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "FastAPI 서버",
+      "type": "shell",
+      "command": "cd ~/project/fastapi && .venv/bin/python -m uvicorn main:app --reload --port 8001",
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "DRF 서버",
+      "type": "shell",
+      "command": "cd ~/project/drf && .venv/bin/python manage.py runserver",
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Celery 워커",
+      "type": "shell",
+      "command": "cd ~/project/drf && .venv/bin/celery -A mysite worker -l info",
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 전체 서버 시작",
+      "dependsOn": ["FastAPI 서버", "DRF 서버", "Celery 워커"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

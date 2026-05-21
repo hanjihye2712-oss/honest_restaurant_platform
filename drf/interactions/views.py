@@ -22,8 +22,8 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ai.models import SentimentResult
-from ai import tasks
+from ai.ai_sentiment.models import SentimentResult
+from ai.ai_sentiment import tasks
 from honest_restaurant.models import ReceiptVerification
 from .models import Bookmark, Rating, Review
 from .serializers import BookmarkSerializer, RatingSerializer, ReviewSerializer

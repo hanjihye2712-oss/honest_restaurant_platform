@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from ai.admin import DEFAULT_BADGE, STATUS_STYLE, SentimentResultInline
-from ai.models import SentimentResult
+from ai.ai_sentiment.admin import DEFAULT_BADGE, STATUS_STYLE, SentimentResultInline
+from ai.ai_sentiment.models import SentimentResult
 from .models import Bookmark, Rating, Review
 
 

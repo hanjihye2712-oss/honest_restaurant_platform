@@ -79,7 +79,7 @@ INSTALLED_APPS = [
     'honest_restaurant',
     'accounts',
     'interactions',
-    'ai',
+    'ai.ai_sentiment',
     'marketing',
     'sales',
 ]
