@@ -18,9 +18,12 @@ from django.views.generic import ListView
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from ai.models import SentimentResult
+from ai import tasks
 from honest_restaurant.models import ReceiptVerification
 from .models import Bookmark, Rating, Review
 from .serializers import BookmarkSerializer, RatingSerializer, ReviewSerializer
@@ -38,7 +41,6 @@ class BookmarkListView(LoginRequiredMixin, ListView):
     template_name       = "interactions/bookmark_list.html"
     context_object_name = "bookmarks"
     paginate_by         = 20
-    login_url           = "/accounts/login/"
 
     def get_queryset(self):
         return (
@@ -57,7 +59,6 @@ class ReviewListView(LoginRequiredMixin, ListView):
     template_name       = "interactions/review_list.html"
     context_object_name = "reviews"
     paginate_by         = 20
-    login_url           = "/accounts/login/"
 
     def get_queryset(self):
         return (
@@ -203,7 +204,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names  = ["get", "post", "patch", "delete"]
 
     def get_queryset(self):
-        qs            = Review.objects.select_related("restaurant", "user")
+        qs            = Review.objects.select_related("restaurant", "user", "sentiment")
         restaurant_id = self.request.query_params.get("restaurant_id")
         return (
             qs.filter(restaurant_id=restaurant_id)
@@ -212,7 +213,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        review = serializer.save(user=self.request.user)
+        SentimentResult.objects.create(review=review)
+        tasks.analyze_sentiment.delay(review.id, review.content)
 
     def create(self, request, *args, **kwargs):
         restaurant_id = request.data.get("restaurant")
@@ -229,23 +232,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """본인 리뷰만 수정 가능 (PATCH only — partial=True 강제)."""
         instance = self.get_object()
         if instance.user != request.user:
-            return Response(
-                {"detail": "권한이 없습니다."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+            raise PermissionDenied("권한이 없습니다.")
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+
+        if "content" in serializer.validated_data:
+            SentimentResult.reset_for_review(instance.id)
+            tasks.analyze_sentiment.delay(instance.id, instance.content)
+
         return Response(serializer.data)
 
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.user != request.user:
-            return Response(
-                {"detail": "권한이 없습니다."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        return super().destroy(request, *args, **kwargs)
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise PermissionDenied("권한이 없습니다.")
+        instance.delete()
 
 
 # ══════════════════════════════════════════════════════════════

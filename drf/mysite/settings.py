@@ -48,6 +48,10 @@ KAKAO_REST_API_KEY       = os.getenv('KAKAO_REST_API_KEY',       '')
 TOSS_CLIENT_KEY          = os.getenv('TOSS_CLIENT_KEY',          '')
 TOSS_SECRET_KEY          = os.getenv('TOSS_SECRET_KEY',          '')
 
+# ── FastAPI 감성 분석 서비스 ──────────────────────────────────────
+FASTAPI_SENTIMENT_URL     = os.getenv('FASTAPI_SENTIMENT_URL', 'http://localhost:8001/analyze')
+FASTAPI_SENTIMENT_TIMEOUT = int(os.getenv('FASTAPI_SENTIMENT_TIMEOUT', '10'))
+
 # 외부 SDK(카카오맵 등) 로드 시 Referer 헤더 전달을 위해 변경
 # same-origin(기본값)은 크로스오리진 요청에 Referer를 보내지 않아 Kakao 403 발생
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
@@ -75,6 +79,7 @@ INSTALLED_APPS = [
     'honest_restaurant',
     'accounts',
     'interactions',
+    'ai',
     'marketing',
     'sales',
 ]
@@ -251,3 +256,11 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# ── Celery ────────────────────────────────────────────────────────────────
+CELERY_BROKER_URL        = os.getenv('CELERY_BROKER_URL',    'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND    = os.getenv('CELERY_RESULT_BACKEND','redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT    = ['json']
+CELERY_TASK_SERIALIZER   = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE          = 'Asia/Seoul'
