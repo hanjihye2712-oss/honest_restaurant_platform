@@ -281,16 +281,12 @@ class KakaoLoginView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        kakao_rest_api_key = os.getenv("KAKAO_REST_API_KEY")
-        redirect_uri = os.getenv("KAKAO_REDIRECT_URI")
-
         kakao_auth_url = (
             "https://kauth.kakao.com/oauth/authorize"
             f"?response_type=code"
-            f"&client_id={kakao_rest_api_key}"
-            f"&redirect_uri={redirect_uri}"
+            f"&client_id={settings.KAKAO_REST_API_KEY}"
+            f"&redirect_uri={os.getenv('KAKAO_REDIRECT_URI', '')}"
         )
-
         return redirect(kakao_auth_url)
 
 
@@ -307,16 +303,15 @@ class KakaoCallbackView(APIView):
         if not code:
             return Response({"error": "인가 코드가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        kakao_rest_api_key = os.getenv("KAKAO_REST_API_KEY")
         kakao_client_secret = os.getenv("KAKAO_CLIENT_SECRET", "")
-        redirect_uri = os.getenv("KAKAO_REDIRECT_URI")
+        redirect_uri        = os.getenv("KAKAO_REDIRECT_URI", "")
 
-        token_url = "https://kauth.kakao.com/oauth/token"
+        token_url  = "https://kauth.kakao.com/oauth/token"
         token_data = {
-            "grant_type": "authorization_code",
-            "client_id": kakao_rest_api_key,
+            "grant_type":   "authorization_code",
+            "client_id":    settings.KAKAO_REST_API_KEY,
             "redirect_uri": redirect_uri,
-            "code": code,
+            "code":         code,
         }
 
         if kakao_client_secret:
@@ -376,19 +371,16 @@ class NaverLoginView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        naver_client_id = os.getenv("NAVER_CLIENT_ID")
-        redirect_uri = os.getenv("NAVER_REDIRECT_URI")
         state = os.urandom(16).hex()
         request.session['naver_state'] = state
 
         naver_auth_url = (
             "https://nid.naver.com/oauth2.0/authorize"
             f"?response_type=code"
-            f"&client_id={naver_client_id}"
-            f"&redirect_uri={redirect_uri}"
+            f"&client_id={os.getenv('NAVER_CLIENT_ID', '')}"
+            f"&redirect_uri={os.getenv('NAVER_REDIRECT_URI', '')}"
             f"&state={state}"
         )
-
         return redirect(naver_auth_url)
 
 
@@ -410,9 +402,9 @@ class NaverCallbackView(APIView):
         if state != session_state:
             return Response({"error": "state 검증 실패"}, status=status.HTTP_400_BAD_REQUEST)
 
-        naver_client_id = os.getenv("NAVER_CLIENT_ID")
-        naver_client_secret = os.getenv("NAVER_CLIENT_SECRET")
-        redirect_uri = os.getenv("NAVER_REDIRECT_URI")
+        naver_client_id     = os.getenv("NAVER_CLIENT_ID",     "")
+        naver_client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
+        redirect_uri        = os.getenv("NAVER_REDIRECT_URI",  "")
 
         token_url = "https://nid.naver.com/oauth2.0/token"
         token_data = {

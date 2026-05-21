@@ -12,36 +12,16 @@ logger = logging.getLogger(__name__)
 PENALTY_THRESHOLD = 0.85  # 신뢰도 85% 이상일 때만 패널티 부여
 
 
-def _translate_ko_to_en(text: str) -> str:
-    """파파고 API로 한국어 → 영어 번역."""
-    resp = requests.post(
-        "https://naveropenapi.apigw.ntruss.com/nmt/v1/translation",
-        headers={
-            "X-NCP-APIGW-API-KEY-ID": settings.PAPAGO_CLIENT_ID,
-            "X-NCP-APIGW-API-KEY":    settings.PAPAGO_CLIENT_SECRET,
-        },
-        data={"source": "ko", "target": "en", "text": text},
-        timeout=5,
-    )
-    resp.raise_for_status()
-    return resp.json()["message"]["result"]["translatedText"]
-
-
 def request_fake_review_check(review_id: int, korean_text: str) -> None:
     """
-    ① 파파고로 한국어 → 영어 번역
-    ② FastAPI /fake-review/detect 에 영문 전달
-    ③ 결과 저장 + 패널티 적용
+    FastAPI /fake-review/detect 에 한국어 텍스트를 전달한다.
+    번역(Helsinki-NLP)과 탐지는 FastAPI 내부에서 처리된다.
     """
     try:
-        # ① 번역
-        english_text = _translate_ko_to_en(korean_text)
-
-        # ② 가짜 탐지
         resp = requests.post(
             settings.FASTAPI_FAKE_REVIEW_URL,
-            json={"text": english_text},
-            timeout=15,
+            json={"text": korean_text},
+            timeout=settings.FASTAPI_FAKE_REVIEW_TIMEOUT,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -49,12 +29,11 @@ def request_fake_review_check(review_id: int, korean_text: str) -> None:
         is_penalized = data["is_fake"] and data["confidence"] >= PENALTY_THRESHOLD
         penalty      = FakeReviewResult.PENALTY_FAKE if is_penalized else 0
 
-        # ③ 결과 저장
         FakeReviewResult.objects.filter(review_id=review_id).update(
             status          = FakeReviewResult.STATUS_DONE,
             is_fake         = data["is_fake"],
             confidence      = data["confidence"],
-            translated_text = english_text,
+            translated_text = data["translated_text"],
             penalty_score   = penalty,
             analyzed_at     = timezone.now(),
             error_msg       = "",

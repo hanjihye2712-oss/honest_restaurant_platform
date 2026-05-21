@@ -206,7 +206,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names  = ["get", "post", "patch", "delete"]
 
     def get_queryset(self):
-        qs            = Review.objects.select_related("restaurant", "user", "sentiment")
+        qs            = Review.objects.select_related("restaurant", "user", "sentiment", "fake_review")
         restaurant_id = self.request.query_params.get("restaurant_id")
         return (
             qs.filter(restaurant_id=restaurant_id)

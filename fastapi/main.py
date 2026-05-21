@@ -2,14 +2,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from models.sentiment   import load_pipeline as load_sentiment_model
-from models.fake_review import load_model    as load_fake_review_model
+from models.fake_review import load_models   as load_fake_review_models
 from routers            import sentiment, fake_review
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     load_sentiment_model()    # 감성 분석 모델
-    load_fake_review_model()  # 가짜 리뷰 탐지 모델
+    load_fake_review_models() # 번역 모델(Helsinki-NLP) + 가짜 탐지 모델
     yield
 
 

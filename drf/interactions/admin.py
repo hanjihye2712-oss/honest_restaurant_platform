@@ -3,6 +3,7 @@ from django.utils.html import format_html
 
 from ai.ai_sentiment.admin import DEFAULT_BADGE, STATUS_STYLE, SentimentResultInline
 from ai.ai_sentiment.models import SentimentResult
+from ai.ai_fake_review.admin import FakeReviewResultInline
 from .models import Bookmark, Rating, Review
 
 
@@ -26,7 +27,7 @@ class ReviewAdmin(admin.ModelAdmin):
     search_fields   = ["user__username", "restaurant__name", "content"]
     list_filter     = ["created_at"]
     readonly_fields = ["created_at", "updated_at"]
-    inlines         = [SentimentResultInline]
+    inlines         = [SentimentResultInline, FakeReviewResultInline]
 
     _STATUS_LABELS_SHORT = {
         SentimentResult.STATUS_DONE:    "완료",
