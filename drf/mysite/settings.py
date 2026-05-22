@@ -54,6 +54,13 @@ FASTAPI_SENTIMENT_TIMEOUT  = int(os.getenv('FASTAPI_SENTIMENT_TIMEOUT',  '10'))
 FASTAPI_FAKE_REVIEW_URL    = os.getenv('FASTAPI_FAKE_REVIEW_URL',    'http://localhost:8001/fake-review/detect')
 FASTAPI_FAKE_REVIEW_TIMEOUT= int(os.getenv('FASTAPI_FAKE_REVIEW_TIMEOUT', '30'))
 
+FASTAPI_REVIEW_CLASSIFIER_URL     = os.getenv('FASTAPI_REVIEW_CLASSIFIER_URL',     'http://localhost:8001/review-classifier/analyze')
+FASTAPI_REVIEW_CLASSIFIER_TIMEOUT = int(os.getenv('FASTAPI_REVIEW_CLASSIFIER_TIMEOUT', '30'))
+
+# ── AI 분석 임계값 ────────────────────────────────────────────────
+FAKE_REVIEW_PENALTY_THRESHOLD = float(os.getenv('FAKE_REVIEW_PENALTY_THRESHOLD', '0.85'))
+HYGIENE_ALERT_THRESHOLD       = float(os.getenv('HYGIENE_ALERT_THRESHOLD',       '0.30'))
+
 # 외부 SDK(카카오맵 등) 로드 시 Referer 헤더 전달을 위해 변경
 # same-origin(기본값)은 크로스오리진 요청에 Referer를 보내지 않아 Kakao 403 발생
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
@@ -83,6 +90,7 @@ INSTALLED_APPS = [
     'interactions',
     'ai.ai_sentiment',
     'ai.ai_fake_review',
+    'ai.ai_review_classifier',
     'marketing',
     'sales',
 ]

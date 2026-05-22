@@ -22,10 +22,12 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from ai.ai_sentiment.models import SentimentResult
-from ai.ai_sentiment import tasks as tasks_sentiment
-from ai.ai_fake_review.models import FakeReviewResult
 from ai.ai_fake_review import tasks as tasks_fake
+from ai.ai_fake_review.models import FakeReviewResult
+from ai.ai_review_classifier import tasks as tasks_classifier
+from ai.ai_review_classifier.models import ReviewClassificationResult
+from ai.ai_sentiment import tasks as tasks_sentiment
+from ai.ai_sentiment.models import SentimentResult
 from honest_restaurant.models import ReceiptVerification
 from .models import Bookmark, Rating, Review
 from .serializers import BookmarkSerializer, RatingSerializer, ReviewSerializer
@@ -206,7 +208,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names  = ["get", "post", "patch", "delete"]
 
     def get_queryset(self):
-        qs            = Review.objects.select_related("restaurant", "user", "sentiment", "fake_review")
+        qs            = Review.objects.select_related("restaurant", "user", "sentiment", "fake_review", "review_classification")
         restaurant_id = self.request.query_params.get("restaurant_id")
         return (
             qs.filter(restaurant_id=restaurant_id)
@@ -218,8 +220,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         review = serializer.save(user=self.request.user)
         SentimentResult.objects.create(review=review)
         FakeReviewResult.objects.create(review=review)
+        ReviewClassificationResult.objects.create(review=review)
         tasks_sentiment.analyze_sentiment.delay(review.id, review.content)
         tasks_fake.check_fake_review.delay(review.id, review.content)
+        tasks_classifier.classify_review.delay(review.id, review.content)
 
     def create(self, request, *args, **kwargs):
         restaurant_id = request.data.get("restaurant")
@@ -249,8 +253,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 translated_text="", penalty_score=0,
                 analyzed_at=None, error_msg="",
             )
+            ReviewClassificationResult.reset_for_review(instance.id)
             tasks_sentiment.analyze_sentiment.delay(instance.id, instance.content)
             tasks_fake.check_fake_review.delay(instance.id, instance.content)
+            tasks_classifier.classify_review.delay(instance.id, instance.content)
 
         return Response(serializer.data)
 

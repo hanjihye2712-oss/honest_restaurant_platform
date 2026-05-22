@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html, mark_safe
 
 from .models import PublicRestaurantData, ReceiptVerification
 
@@ -132,8 +133,6 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
     # ── 커스텀 컬럼: 정부 인증 배지 ───────────────
     @admin.display(description="정부 인증")
     def cert_badges(self, obj):
-        from django.utils.html import format_html, mark_safe
-
         badges = []
         if obj.hygiene_grade:
             badges.append(
@@ -160,8 +159,6 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
     # ── 커스텀 컬럼: 영업상태를 색깔 배지로 표시 ──
     @admin.display(description="영업상태")
     def status_badge(self, obj):
-        from django.utils.html import format_html
-
         color_map = {
             PublicRestaurantData.STATUS_OPEN      : ("#d4edda", "#155724", "영업"),
             PublicRestaurantData.STATUS_SUSPENDED : ("#fff3cd", "#856404", "휴업"),

@@ -38,7 +38,7 @@ class UserProfile(models.Model):
 class UserTrustScore(models.Model):
     """가짜 리뷰 탐지 시 패널티를 누적하는 신뢰 점수."""
     INITIAL_SCORE = 100
-    PENALTY_FAKE  = -10
+    # 패널티 값은 FakeReviewResult.PENALTY_FAKE가 단일 출처(source of truth)
 
     user = models.OneToOneField(
         User,

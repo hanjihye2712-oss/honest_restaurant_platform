@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class PublicRestaurantData(models.Model):
@@ -282,7 +283,6 @@ class PublicRestaurantData(models.Model):
         """영업 연수 계산 — LV4 조건 / 노포 판별에 사용"""
         if not self.license_date:
             return None
-        from django.utils import timezone
         delta = timezone.now().date() - self.license_date
         return round(delta.days / 365.25, 1)
 
@@ -295,7 +295,6 @@ class PublicRestaurantData(models.Model):
     @property
     def hygiene_grade_valid(self) -> bool:
         """위생등급 현재 유효 여부 (만료일 이후이거나 등급 없으면 False)"""
-        from django.utils import timezone
         if not self.hygiene_grade or not self.hygiene_grade_to:
             return False
         return self.hygiene_grade_to >= timezone.now().date()

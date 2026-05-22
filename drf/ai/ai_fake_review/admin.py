@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from ai.ai_sentiment.admin import DEFAULT_BADGE, _badge
+from ai.admin_utils import DEFAULT_BADGE, badge, status_badge
 from .models import FakeReviewResult
 
 _STATUS_STYLE = {
@@ -16,8 +16,7 @@ class FakeReviewDisplayMixin:
 
     @admin.display(description="분석 상태")
     def status_badge(self, obj):
-        bg, color, label = _STATUS_STYLE.get(obj.status, (*DEFAULT_BADGE, obj.status))
-        return _badge(bg, color, label)
+        return status_badge(obj.status, _STATUS_STYLE)
 
     @admin.display(description="가짜 여부")
     def is_fake_badge(self, obj):
@@ -25,7 +24,7 @@ class FakeReviewDisplayMixin:
             return "—"
         bg, color, label = ("#f8d7da", "#721c24", "가짜") if obj.is_fake \
                       else ("#d4edda", "#155724", "정상")
-        return _badge(bg, color, label, weight="700")
+        return badge(bg, color, label, weight="700")
 
     @admin.display(description="신뢰도")
     def confidence_bar(self, obj):

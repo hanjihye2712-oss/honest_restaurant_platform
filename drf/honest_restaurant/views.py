@@ -20,6 +20,8 @@ honest_restaurant.views
 import hashlib
 import json
 import logging
+import os
+from datetime import date
 
 import requests
 from django.conf import settings
@@ -53,7 +55,6 @@ from interactions.models import Bookmark, Rating, Review
 
 def _apply_restaurant_filters(qs, params, *, include_category=False):
     """search/province/district/business_type/min_years/cert/bounds 파라미터로 쿼리셋 필터링."""
-    from datetime import date
     search         = params.get("search",    "").strip()
     province       = params.get("province",  "").strip()
     district       = params.get("district",  "").strip()
@@ -169,7 +170,6 @@ class OwnerDashboardView(LoginRequiredMixin, TemplateView):
     login_url     = "/accounts/login/"
 
     def handle_no_permission(self):
-        from django.shortcuts import redirect
         return redirect(f"{self.login_url}?next=/dashboard/")
 
 

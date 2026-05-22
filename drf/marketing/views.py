@@ -112,7 +112,7 @@ class MarketingPostViewSet(
         """FastAPI AI 게이트웨이 호출 자리 (추후 httpx로 교체)"""
         return {
             'content': f"[AI 생성 예정] {restaurant.name} — {input_prompt}",
-            'hashtags': [f'#{restaurant.district}맛집', '#정직식당'],
+            'hashtags': [f'#{restaurant.province}맛집', f'#{restaurant.name}'],
         }
 
 

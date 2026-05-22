@@ -1,6 +1,8 @@
 import os
+
 import requests
 from django.conf import settings
+from django.db.models import Avg
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth import login as session_login, logout as session_logout
 from django.contrib.auth.forms import UserCreationForm
@@ -17,6 +19,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from interactions.models import Bookmark, Rating, Review
 
 User = get_user_model()
 
@@ -151,9 +155,6 @@ class MyPageView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-
-        from django.db.models import Avg
-        from interactions.models import Bookmark, Review, Rating
 
         role = getattr(getattr(user, "profile", None), "role", "guest")
         role_labels = {"guest": "일반 회원", "owner": "사장님", "admin": "관리자"}

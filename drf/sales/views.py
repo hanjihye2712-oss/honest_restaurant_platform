@@ -17,13 +17,19 @@ from datetime import datetime, timedelta
 
 import requests
 from django.conf import settings
+from django.db.models import F, Sum
+from django.db.models.functions import TruncDate, TruncMonth
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import TemplateView
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import SaleRecord, SaleItem
+from honest_restaurant.models import PublicRestaurantData
+
+from .models import ManagedRestaurant, SaleItem, SaleRecord
 
 
 # ══════════════════════════════════════════════════════════════
@@ -45,8 +51,6 @@ class CheckoutView(TemplateView):
 
 class SuccessView(View):
     def get(self, request):
-        from django.shortcuts import render
-
         payment_key = request.GET.get('paymentKey')
         order_id    = request.GET.get('orderId')
         amount      = request.GET.get('amount')
@@ -150,10 +154,6 @@ class SalesDashboardAPIView(View):
     소주·맥주·콜라·사이다는 '주류/음료' 그룹으로 합산한다.
     """
     def get(self, request):
-        from django.db.models import Sum
-        from django.db.models.functions import TruncDate
-        from django.utils import timezone
-
         now         = timezone.now()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         week_ago    = now - timedelta(days=6)
@@ -211,11 +211,6 @@ class SalesDetailView(TemplateView):
     template_name = 'sales/dashboard_detail.html'
 
     def get_context_data(self, **kwargs):
-        from django.db.models import F, Sum
-        from django.db.models.functions import TruncMonth
-        from django.utils import timezone
-        import json as _json
-
         ctx  = super().get_context_data(**kwargs)
         slug = self.kwargs.get('slug', 'all')
 
@@ -313,12 +308,12 @@ class SalesDetailView(TemplateView):
             'total_rev':           f"{this_rev:,}",
             'change_str':          change_str,
             'change_up':           change_up,
-            'monthly_menu_json':   _json.dumps(monthly_menu_raw, ensure_ascii=False),
+            'monthly_menu_json':   json.dumps(monthly_menu_raw, ensure_ascii=False),
             'current_month_key':   month_key,
-            'rev_2025_json':       _json.dumps(rev_2025, ensure_ascii=False),
-            'rev_2026_json':       _json.dumps(rev_2026, ensure_ascii=False),
-            'chart_labels_json':   _json.dumps(chart_labels, ensure_ascii=False),
-            'chart_data_json':     _json.dumps(chart_data, ensure_ascii=False),
+            'rev_2025_json':       json.dumps(rev_2025, ensure_ascii=False),
+            'rev_2026_json':       json.dumps(rev_2026, ensure_ascii=False),
+            'chart_labels_json':   json.dumps(chart_labels, ensure_ascii=False),
+            'chart_data_json':     json.dumps(chart_data, ensure_ascii=False),
         })
         return ctx
 
@@ -334,10 +329,6 @@ class RegisterManagedRestaurantView(View):
     관리자(is_staff)만 사용 가능.
     """
     def post(self, request, pk):
-        from django.utils import timezone
-        from honest_restaurant.models import PublicRestaurantData
-        from .models import ManagedRestaurant
-
         if not request.user.is_staff:
             return JsonResponse({'error': '관리자만 사용 가능합니다.'}, status=403)
 

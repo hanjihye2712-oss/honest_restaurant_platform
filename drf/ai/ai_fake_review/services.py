@@ -5,11 +5,12 @@ from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
 
+from accounts.models import UserTrustScore
+from interactions.models import Review
+
 from .models import FakeReviewResult
 
 logger = logging.getLogger(__name__)
-
-PENALTY_THRESHOLD = 0.85  # 신뢰도 85% 이상일 때만 패널티 부여
 
 
 def request_fake_review_check(review_id: int, korean_text: str) -> None:
@@ -26,7 +27,7 @@ def request_fake_review_check(review_id: int, korean_text: str) -> None:
         resp.raise_for_status()
         data = resp.json()
 
-        is_penalized = data["is_fake"] and data["confidence"] >= PENALTY_THRESHOLD
+        is_penalized = data["is_fake"] and data["confidence"] >= settings.FAKE_REVIEW_PENALTY_THRESHOLD
         penalty      = FakeReviewResult.PENALTY_FAKE if is_penalized else 0
 
         FakeReviewResult.objects.filter(review_id=review_id).update(
@@ -55,9 +56,6 @@ def request_fake_review_check(review_id: int, korean_text: str) -> None:
 
 def _apply_penalty(review_id: int) -> None:
     """가짜 리뷰 확정 시 UserTrustScore에 패널티 적용."""
-    from interactions.models import Review
-    from accounts.models import UserTrustScore
-
     review = Review.objects.select_related("user").get(id=review_id)
     UserTrustScore.objects.filter(user=review.user).update(
         score      = F("score") + FakeReviewResult.PENALTY_FAKE,

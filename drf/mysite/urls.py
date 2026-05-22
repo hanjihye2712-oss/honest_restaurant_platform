@@ -16,6 +16,7 @@ urlpatterns = [
     path("",                  include(page_urlpatterns)),
     path('accounts/', include('allauth.urls')),
     path('sales/', include('sales.urls')),
+    path("api/ai/", include("ai.ai_review_classifier.urls")),
 
     # 브라우저가 자동으로 요청하는 favicon.ico — 204로 응답해 404 제거
     path("favicon.ico", lambda request: HttpResponse(status=204)),

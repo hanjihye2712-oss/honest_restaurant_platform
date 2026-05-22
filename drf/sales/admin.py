@@ -7,6 +7,7 @@ from django.db.models.functions import ExtractHour, TruncDate, TruncMonth, Trunc
 from django.shortcuts import render
 from django.urls import path
 from django.utils import timezone
+from django.utils.html import format_html
 
 from marketing.models import MarketingPost
 
@@ -257,7 +258,6 @@ class ManagedRestaurantAdmin(admin.ModelAdmin):
     ordering      = ('-joined_at',)
 
     def dashboard_link(self, obj):
-        from django.utils.html import format_html
         return format_html(
             '<a href="{}/dashboard/" style="background:#1a2744;color:#fff;padding:4px 12px;'
             'border-radius:3px;font-size:12px;text-decoration:none;">📊 대시보드</a>',
