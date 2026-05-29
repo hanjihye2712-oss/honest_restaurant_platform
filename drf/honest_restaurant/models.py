@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -255,6 +256,34 @@ class PublicRestaurantData(models.Model):
     )
 
     # ─────────────────────────────────────────────
+    # ⑦ 사업자 인증 — 사장님-식당 매핑
+    # ─────────────────────────────────────────────
+
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="owned_restaurant",
+        verbose_name="사장님",
+        help_text="우리 가게 등록 시 설정. 1인 1식당 원칙.",
+    )
+
+    sns_connected = models.BooleanField(
+        default=False,
+        verbose_name="SNS 계정 연동",
+        help_text="연동 시 마케팅 글 자동 발행(예약/즉시) 기능이 활성화됩니다.",
+    )
+
+    tagline = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+        verbose_name="한줄 소개",
+        help_text="가게 상세 페이지에 표시되는 한 줄 소개. 비어 있으면 자동 생성됩니다.",
+    )
+
+    # ─────────────────────────────────────────────
     # ④ 내부 관리 필드 — 동기화 메타 정보
     # ─────────────────────────────────────────────
 
@@ -361,6 +390,34 @@ class RestaurantMedia(models.Model):
         verbose_name_plural = "식당 미디어"
 
 
+class RestaurantMenuItem(models.Model):
+    """
+    사장님이 직접 등록한 메뉴명·가격 데이터.
+    손님 영수증 OCR 결과와 비교해 가격 신뢰도 지표로 활용한다.
+    """
+
+    restaurant = models.ForeignKey(
+        PublicRestaurantData,
+        on_delete=models.CASCADE,
+        related_name="menu_items",
+        verbose_name="식당",
+    )
+    name = models.CharField(max_length=100, verbose_name="메뉴명")
+    price = models.PositiveIntegerField(verbose_name="가격(원)")
+    order = models.PositiveIntegerField(default=0, db_index=True, verbose_name="표시 순서")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="등록 시각")
+
+    def __str__(self):
+        return f"{self.restaurant.name} — {self.name} {self.price:,}원"
+
+    class Meta:
+        db_table            = "restaurant_menu_item"
+        unique_together     = [["restaurant", "name"]]
+        ordering            = ["order", "id"]
+        verbose_name        = "메뉴 항목"
+        verbose_name_plural = "메뉴 항목"
+
+
 class ReceiptVerification(models.Model):
     STATUS_PENDING  = "pending"
     STATUS_APPROVED = "approved"
@@ -399,6 +456,31 @@ class ReceiptVerification(models.Model):
     )
     submitted_at = models.DateTimeField(auto_now_add=True)
 
+    # OCR 분석 결과 (메뉴판이 등록된 경우에만 채워짐)
+    extracted_items = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="추출된 주문 내역",
+        help_text='예: [{"menu": "삼겹살", "price": 15000}]',
+    )
+    price_match_rate = models.FloatField(
+        null=True,
+        blank=True,
+        verbose_name="가격 일치율",
+        help_text="0.0~1.0. null이면 메뉴판 미등록 또는 OCR 미완료",
+    )
+    price_discrepancies = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="가격 불일치 항목",
+        help_text='예: [{"menu": "삼겹살", "menu_price": 15000, "receipt_price": 17000}]',
+    )
+    ocr_analyzed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="OCR 분석 완료 시각",
+    )
+
     def __str__(self):
         return f"{self.restaurant.name} — {self.user} ({self.get_status_display()})"
 
@@ -406,5 +488,71 @@ class ReceiptVerification(models.Model):
         unique_together = ["restaurant", "user"]
         verbose_name = "영수증 인증"
         verbose_name_plural = "영수증 인증"
+
+
+class RestaurantOwnerApplication(models.Model):
+    """
+    사업자 인증 신청 — 국세청 API 자동 인증 실패 시 사업자등록증 업로드로 수동 검토.
+    관리자가 승인하면 restaurant.owner + profile.role='owner' 자동 설정.
+    """
+    STATUS_PENDING  = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES  = [
+        (STATUS_PENDING,  "검토 중"),
+        (STATUS_APPROVED, "승인"),
+        (STATUS_REJECTED, "반려"),
+    ]
+
+    restaurant      = models.ForeignKey(
+        PublicRestaurantData,
+        on_delete=models.CASCADE,
+        related_name="owner_applications",
+        verbose_name="신청 식당",
+    )
+    user            = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="owner_applications",
+        verbose_name="신청자",
+    )
+    business_number = models.CharField(
+        max_length=12,
+        blank=True,
+        verbose_name="사업자등록번호",
+        help_text="입력한 사업자등록번호 (국세청 API 불일치 시 기록)",
+    )
+    verified_by_api = models.BooleanField(
+        default=False,
+        verbose_name="국세청 API 인증 여부",
+        help_text="True이면 국세청 API에서 계속사업자 확인된 신청",
+    )
+    cert_image      = models.ImageField(
+        upload_to="owner_certs/",
+        blank=True,
+        null=True,
+        verbose_name="사업자등록증 사진",
+        help_text="국세청 API 인증 실패 시 수동 업로드",
+    )
+    status          = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        db_index=True,
+        verbose_name="검토 상태",
+    )
+    admin_note        = models.TextField(blank=True, verbose_name="관리자 메모")
+    applied_at        = models.DateTimeField(auto_now_add=True, verbose_name="신청일시")
+    reviewed_at       = models.DateTimeField(null=True, blank=True, verbose_name="검토일시")
+    approval_notified = models.BooleanField(default=False, verbose_name="승인 알림 확인 여부")
+
+    def __str__(self):
+        return f"{self.user.username} → {self.restaurant.name} ({self.get_status_display()})"
+
+    class Meta:
+        db_table            = "restaurant_owner_application"
+        verbose_name        = "사업자 인증 신청"
+        verbose_name_plural = "사업자 인증 신청"
+        ordering            = ["-applied_at"]
 
 

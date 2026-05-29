@@ -1,0 +1,80 @@
+{% extends "community/base.html" %}
+{% load static %}
+
+{% block page_title %}✍️ 인증 리뷰어{% endblock %}
+{% block page_sub %}정직한 리뷰로 동네 식당을 지키는 사람들{% endblock %}
+
+{% block comm_content %}
+
+<div class="comm-grid-2" style="align-items:start;gap:24px;">
+
+  <!-- ── 랭킹 ── -->
+  <div>
+    <div class="comm-section-title">🏆 이달의 리뷰어 랭킹</div>
+    <div class="comm-card" style="padding:0;overflow:hidden;">
+      <table class="comm-table">
+        <thead>
+          <tr><th>순위</th><th>리뷰어</th><th>리뷰</th><th>인증</th><th>뱃지</th></tr>
+        </thead>
+        <tbody>
+          {% for r in top_reviewers %}
+          <tr class="{{ r.row_class }}">
+            <td style="font-weight:800;font-size:16px;">
+              {% if r.rank == 1 %}🥇{% elif r.rank == 2 %}🥈{% elif r.rank == 3 %}🥉{% else %}{{ r.rank }}{% endif %}
+            </td>
+            <td>
+              <span style="font-weight:700;">{{ r.username }}</span>
+              {% if r.certified %}<span class="status-badge certified" style="margin-left:6px;">인증</span>{% endif %}
+              {% if r.username == 'my_account' %}<span style="font-size:11px;color:var(--muted);margin-left:4px;">(나)</span>{% endif %}
+            </td>
+            <td>{{ r.reviews }}건</td>
+            <td>{{ r.verifications }}건</td>
+            <td>{{ r.badges }}개</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 인증 요건 + 혜택 ── -->
+  <div>
+    <div class="comm-section-title">🎯 인증 리뷰어 달성 조건</div>
+    <div class="comm-card" style="margin-bottom:14px;">
+      {% for req in requirements %}
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:13px;font-weight:600;color:var(--ink);">
+            {% if req.done %}✅{% else %}⬜{% endif %} {{ req.label }}
+          </span>
+          {% if not req.done %}
+          <span style="font-size:12px;color:var(--muted);">{{ req.current }} / {{ req.total }}</span>
+          {% endif %}
+        </div>
+        {% if not req.done %}
+        <div class="prog-wrap">
+          <div class="prog-fill" data-w="{{ req.pct }}"></div>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div style="background:#fffdf0;border-radius:6px;padding:12px;margin-top:8px;font-size:12px;color:#8a6a2a;">
+        현재 <strong>{{ my_rank }}위</strong> — 인증까지 리뷰 18건, 인증 12건 더 필요
+      </div>
+    </div>
+
+    <div class="comm-section-title">🎁 인증 리뷰어 혜택</div>
+    <div class="comm-card">
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li style="padding:10px 0;border-bottom:1px solid var(--tan);font-size:13px;">⭐ 내 리뷰에 <strong>인증 마크</strong> 표시</li>
+        <li style="padding:10px 0;border-bottom:1px solid var(--tan);font-size:13px;">📌 리뷰 <strong>상단 노출</strong> 우선권</li>
+        <li style="padding:10px 0;border-bottom:1px solid var(--tan);font-size:13px;">📩 식당 사장님 <strong>직접 협업 제안</strong> 수신 가능</li>
+        <li style="padding:10px 0;border-bottom:1px solid var(--tan);font-size:13px;">🏅 전용 <strong>골드 뱃지</strong> 프로필 표시</li>
+        <li style="padding:10px 0;font-size:13px;">📊 월간 <strong>리뷰 인사이트 리포트</strong> 제공</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

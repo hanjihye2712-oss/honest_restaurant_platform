@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.db import transaction
+from django.utils import timezone
 from django.utils.html import format_html, mark_safe
 
-from .models import PublicRestaurantData, ReceiptVerification
+from .models import PublicRestaurantData, RestaurantOwnerApplication
 
 
 @admin.register(PublicRestaurantData)
@@ -103,16 +105,23 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "③ 위치 좌표 (중부원점TM)",
+            "③ 위치 좌표 (WGS84)",
             {
                 "fields": [
                     "latitude",
                     "longitude",
                 ],
                 "description": (
-                    "⚠️ X/Y는 중부원점TM(EPSG:5174) 좌표계입니다. "
-                    "WGS84 위경도가 아니므로 지도 표시 시 변환이 필요합니다."
+                    "동기화 시 중부원점TM(EPSG:5174) → WGS84(EPSG:4326)로 변환해 저장됩니다. "
+                    "지도 표시에 바로 사용 가능합니다."
                 ),
+            },
+        ),
+        (
+            "⑧ SNS 계정 연동",
+            {
+                "fields": ["sns_connected"],
+                "description": "체크 시 마케팅 관리 페이지에 예약/즉시 발행 기능이 활성화됩니다.",
             },
         ),
         (
@@ -179,19 +188,79 @@ class PublicRestaurantDataAdmin(admin.ModelAdmin):
             label,       # {} 세 번째
         )
 
-@admin.register(ReceiptVerification)
-class ReceiptVerificationAdmin(admin.ModelAdmin):
-    list_display  = ["restaurant", "user", "status", "submitted_at"]
-    list_filter   = ["status"]
-    search_fields = ["restaurant__name", "user__username"]
-    actions       = ["approve", "reject"]
 
-    @admin.action(description="선택 항목 인증 승인")
+
+
+
+# ── 사업자 인증 신청 Admin ────────────────────────────────────────────────
+
+@admin.register(RestaurantOwnerApplication)
+class RestaurantOwnerApplicationAdmin(admin.ModelAdmin):
+
+    list_display    = ["restaurant", "user", "business_number", "verify_type_badge", "status_badge", "cert_preview", "applied_at"]
+    list_filter     = ["status", "verified_by_api"]
+    search_fields   = ["restaurant__name", "user__username", "business_number"]
+    readonly_fields = ["restaurant", "user", "business_number", "verified_by_api", "cert_preview_large", "applied_at"]
+    actions         = ["approve", "reject"]
+
+    def verify_type_badge(self, obj):
+        if obj.verified_by_api:
+            return mark_safe(
+                '<span style="background:#cce5ff;color:#004085;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700">국세청 API ✓</span>'
+            )
+        return mark_safe(
+            '<span style="background:#e2e3e5;color:#383d41;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700">서류 제출</span>'
+        )
+    verify_type_badge.short_description = "인증 방식"
+
+    def status_badge(self, obj):
+        colors = {
+            "pending":  ("#fff3cd", "#856404", "검토 중"),
+            "approved": ("#d4edda", "#155724", "승인"),
+            "rejected": ("#f8d7da", "#721c24", "반려"),
+        }
+        bg, fg, label = colors.get(obj.status, ("#eee", "#333", obj.status))
+        return format_html(
+            '<span style="background:{};color:{};padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700">{}</span>',
+            bg, fg, label,
+        )
+    status_badge.short_description = "상태"
+
+    def cert_preview(self, obj):
+        if obj.cert_image:
+            return format_html('<img src="{}" style="height:48px;border-radius:4px">', obj.cert_image.url)
+        return mark_safe('<span style="color:#aaa;font-size:12px">없음 (API 인증)</span>')
+    cert_preview.short_description = "사업자등록증"
+
+    def cert_preview_large(self, obj):
+        if obj.cert_image:
+            return format_html('<img src="{}" style="max-width:400px;border:1px solid #ccc">', obj.cert_image.url)
+        return "사업자등록증 미첨부 (국세청 API로 계속사업자 확인됨)"
+    cert_preview_large.short_description = "사업자등록증 원본"
+
+    @admin.action(description="✅ 선택한 신청 승인 — 사장님 권한 부여")
     def approve(self, request, queryset):
-        queryset.update(status=ReceiptVerification.STATUS_APPROVED)
+        count = 0
+        for app in queryset.filter(status=RestaurantOwnerApplication.STATUS_PENDING):
+            restaurant = app.restaurant
+            if restaurant.owner is not None:
+                continue
+            with transaction.atomic():
+                restaurant.owner = app.user
+                restaurant.save(update_fields=["owner"])
+                profile = app.user.profile
+                profile.role = "owner"
+                profile.save(update_fields=["role"])
+                app.status      = RestaurantOwnerApplication.STATUS_APPROVED
+                app.reviewed_at = timezone.now()
+                app.save(update_fields=["status", "reviewed_at"])
+            count += 1
+        self.message_user(request, f"{count}건 승인 완료 — 사장님 권한이 부여됐습니다.")
 
-    @admin.action(description="선택 항목 인증 거부")
+    @admin.action(description="❌ 선택한 신청 반려")
     def reject(self, request, queryset):
-        queryset.update(status=ReceiptVerification.STATUS_REJECTED)
-
-
+        count = queryset.filter(status=RestaurantOwnerApplication.STATUS_PENDING).update(
+            status=RestaurantOwnerApplication.STATUS_REJECTED,
+            reviewed_at=timezone.now(),
+        )
+        self.message_user(request, f"{count}건 반려 완료.")

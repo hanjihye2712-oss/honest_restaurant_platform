@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI 리포트 전체 보기 | 정직식당{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/ai/report_history.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="rh-wrap">
+  <div class="rh-title">AI 리포트 기록</div>
+  <p class="rh-sub">{{ restaurant.name }} · AI 분석 리포트 전체 목록</p>
+
+  {% if page_obj %}
+    {% for report in page_obj %}
+    <div class="rh-card">
+      <div class="rh-card-head">
+        <span class="rh-period">
+          분석 기간 &nbsp; {{ report.period_start }} ~ {{ report.period_end }}
+        </span>
+        {% if report.generated_at %}
+        <span class="rh-generated">생성 {{ report.generated_at|date:"Y.m.d H:i" }}</span>
+        {% endif %}
+      </div>
+      <div class="rh-body">{{ report.report_text }}</div>
+    </div>
+    {% endfor %}
+
+    {% if paginator_pages %}
+    <nav class="rh-pagination" aria-label="페이지 이동">
+      {% if page_obj.has_previous %}
+        <a class="rh-page-btn" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+      {% else %}
+        <span class="rh-page-btn disabled">&laquo;</span>
+      {% endif %}
+
+      {% for num in paginator_pages %}
+        {% if not num %}
+          <span class="rh-page-ellipsis">…</span>
+        {% elif num == page_obj.number %}
+          <span class="rh-page-btn current">{{ num }}</span>
+        {% else %}
+          <a class="rh-page-btn" href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a class="rh-page-btn" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+      {% else %}
+        <span class="rh-page-btn disabled">&raquo;</span>
+      {% endif %}
+    </nav>
+    {% endif %}
+
+  {% else %}
+  <div class="rh-empty">
+    아직 생성된 AI 리포트가 없습니다.<br>
+    리뷰가 쌓이면 매주 자동으로 생성됩니다.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

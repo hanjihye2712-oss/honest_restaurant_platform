@@ -2,14 +2,12 @@
   'use strict';
 
   const menuData    = JSON.parse(document.getElementById('monthly-menu-data').textContent);
-  const rev2025     = JSON.parse(document.getElementById('rev-2025-data').textContent);
-  const rev2026     = JSON.parse(document.getElementById('rev-2026-data').textContent);
+  const revByYear   = JSON.parse(document.getElementById('rev-by-year-data').textContent);
   const chartRaw    = JSON.parse(document.getElementById('chart-data').textContent);
   const meta        = JSON.parse(document.getElementById('page-meta').textContent);
 
   const months      = Object.keys(menuData).sort();
   let menuIdx       = Math.max(months.indexOf(meta.currentMonthKey), 0);
-  let rev2026Idx    = rev2026.length - 1;  // 최근 달부터
 
   const NAVY = '#1a2744';
   const MUTED = '#888';
@@ -100,9 +98,8 @@
   renderMenu(menuIdx);
 
   /* ── 연도별 월 매출 리스트 ─────────────────── */
-  const revByYear = { '2025': rev2025, '2026': rev2026 };
-  const years     = Object.keys(revByYear).filter(y => revByYear[y].length).sort();
-  let   yearIdx   = years.length - 1;   // 가장 최근 연도부터
+  const years   = Object.keys(revByYear).filter(y => revByYear[y].length).sort();
+  let   yearIdx = years.length - 1;   // 가장 최근 연도부터
 
   function renderRevYear(idx) {
     const year  = years[idx];

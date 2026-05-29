@@ -8,6 +8,7 @@ from django.contrib.auth import login as session_login, logout as session_logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import TemplateView
 
 from rest_framework import status
@@ -137,9 +138,19 @@ class MeUpdateView(APIView):
         email = request.data.get("email", "").strip()
 
         if first_name:
+            duplicate = User.objects.filter(
+                first_name=first_name
+            ).exclude(pk=user.pk).exists()
+            if duplicate:
+                return Response(
+                    {"detail": f"'{first_name}'은(는) 이미 사용 중인 닉네임입니다."},
+                    status=status.HTTP_409_CONFLICT,
+                )
             user.first_name = first_name
+
         if email:
             user.email = email
+
         user.save(update_fields=["first_name", "email"])
         return Response({"detail": "저장되었습니다."}, status=status.HTTP_200_OK)
 
@@ -150,7 +161,7 @@ class MyPageView(LoginRequiredMixin, TemplateView):
     마이페이지 — 프로필, 통계, 최근 북마크/리뷰
     """
     template_name = "accounts/mypage.html"
-    login_url = "/accounts/login/"
+    login_url = "/accounts/login/"  # allauth 경로와 일치
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -210,7 +221,9 @@ class AjaxLoginView(APIView):
 
         session_login(request, user)
 
-        next_url = request.data.get("next", "") or "/"
+        next_url = request.data.get("next") or "/"
+        if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+            next_url = "/"
         refresh = RefreshToken.for_user(user)
         response = Response(
             {"detail": "로그인 성공", "redirect": next_url},
@@ -218,6 +231,23 @@ class AjaxLoginView(APIView):
         )
         _set_token_cookies(response, refresh)
         return response
+
+
+class UsernameCheckView(APIView):
+    """
+    GET /accounts/api/check-username/?username=xxx
+    아이디 중복 여부 확인.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        username = request.query_params.get("username", "").strip()
+        if not username:
+            return Response({"available": False, "detail": "아이디를 입력해주세요."})
+        exists = User.objects.filter(username=username).exists()
+        if exists:
+            return Response({"available": False, "detail": "이미 사용 중인 아이디입니다."})
+        return Response({"available": True, "detail": "사용 가능한 아이디입니다."})
 
 
 class AjaxSignupView(APIView):
@@ -271,6 +301,28 @@ class AjaxLogoutView(APIView):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# 소셜 로그인 공통 헬퍼
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _oauth_upsert_and_redirect(request, username: str, email: str, nickname: str):
+    """소셜 로그인 공통: User upsert → 세션 로그인 → JWT 쿠키 → "/" 리다이렉트."""
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={"email": email or "", "first_name": nickname or ""},
+    )
+    if not created:
+        user.email      = email or user.email
+        user.first_name = nickname or user.first_name
+        user.save(update_fields=["email", "first_name"])
+
+    session_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    refresh  = RefreshToken.for_user(user)
+    response = redirect("/")
+    _set_token_cookies(response, refresh)
+    return response
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # 소셜 로그인 뷰 (카카오, 네이버)
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -286,7 +338,7 @@ class KakaoLoginView(APIView):
             "https://kauth.kakao.com/oauth/authorize"
             f"?response_type=code"
             f"&client_id={settings.KAKAO_REST_API_KEY}"
-            f"&redirect_uri={os.getenv('KAKAO_REDIRECT_URI', '')}"
+            f"&redirect_uri={settings.KAKAO_REDIRECT_URI}"
         )
         return redirect(kakao_auth_url)
 
@@ -300,68 +352,41 @@ class KakaoCallbackView(APIView):
 
     def get(self, request):
         code = request.GET.get("code")
-
         if not code:
             return Response({"error": "인가 코드가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
 
-        kakao_client_secret = os.getenv("KAKAO_CLIENT_SECRET", "")
-        redirect_uri        = os.getenv("KAKAO_REDIRECT_URI", "")
-
-        token_url  = "https://kauth.kakao.com/oauth/token"
         token_data = {
             "grant_type":   "authorization_code",
             "client_id":    settings.KAKAO_REST_API_KEY,
-            "redirect_uri": redirect_uri,
+            "redirect_uri": settings.KAKAO_REDIRECT_URI,
             "code":         code,
         }
+        if settings.KAKAO_CLIENT_SECRET:
+            token_data["client_secret"] = settings.KAKAO_CLIENT_SECRET
 
-        if kakao_client_secret:
-            token_data["client_secret"] = kakao_client_secret
-
-        token_response = requests.post(token_url, data=token_data)
-        token_json = token_response.json()
+        token_json = requests.post("https://kauth.kakao.com/oauth/token", data=token_data).json()
         kakao_access_token = token_json.get("access_token")
-
         if not kakao_access_token:
-            return Response({
-                "error": "카카오 access_token 발급 실패",
-                "detail": token_json
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "카카오 access_token 발급 실패", "detail": token_json},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        user_info_url = "https://kapi.kakao.com/v2/user/me"
-        headers = {"Authorization": f"Bearer {kakao_access_token}"}
-        user_info_response = requests.get(user_info_url, headers=headers)
-        user_info = user_info_response.json()
+        user_info = requests.get(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {kakao_access_token}"},
+        ).json()
 
-        kakao_id = user_info.get("id")
+        kakao_id      = user_info.get("id")
         kakao_account = user_info.get("kakao_account", {})
-        email = kakao_account.get("email")
-        profile = kakao_account.get("profile", {})
-        nickname = profile.get("nickname") or kakao_account.get("name") or ""
+        profile       = kakao_account.get("profile", {})
+        email         = kakao_account.get("email", "")
+        nickname      = profile.get("nickname") or kakao_account.get("name") or ""
 
         if not kakao_id:
             return Response({"error": "카카오 사용자 정보 조회 실패"}, status=status.HTTP_400_BAD_REQUEST)
 
-        username = f"kakao_{kakao_id}"
-        user, created = User.objects.get_or_create(
-            username=username,
-            defaults={
-                "email": email or "",
-                "first_name": nickname or "",
-            }
-        )
-
-        if not created:
-            user.email = email or user.email
-            user.first_name = nickname or user.first_name
-            user.save()
-
-        session_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-
-        refresh = RefreshToken.for_user(user)
-        response = redirect("/")
-        _set_token_cookies(response, refresh)
-        return response
+        return _oauth_upsert_and_redirect(request, f"kakao_{kakao_id}", email, nickname)
 
 
 class NaverLoginView(APIView):
@@ -373,13 +398,13 @@ class NaverLoginView(APIView):
 
     def get(self, request):
         state = os.urandom(16).hex()
-        request.session['naver_state'] = state
+        request.session["naver_state"] = state
 
         naver_auth_url = (
             "https://nid.naver.com/oauth2.0/authorize"
             f"?response_type=code"
-            f"&client_id={os.getenv('NAVER_CLIENT_ID', '')}"
-            f"&redirect_uri={os.getenv('NAVER_REDIRECT_URI', '')}"
+            f"&client_id={settings.NAVER_CLIENT_ID}"
+            f"&redirect_uri={settings.NAVER_REDIRECT_URI}"
             f"&state={state}"
         )
         return redirect(naver_auth_url)
@@ -393,72 +418,45 @@ class NaverCallbackView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        code = request.GET.get("code")
+        code  = request.GET.get("code")
         state = request.GET.get("state")
 
         if not code:
             return Response({"error": "인가 코드가 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
-
-        session_state = request.session.get('naver_state')
-        if state != session_state:
+        if state != request.session.get("naver_state"):
             return Response({"error": "state 검증 실패"}, status=status.HTTP_400_BAD_REQUEST)
 
-        naver_client_id     = os.getenv("NAVER_CLIENT_ID",     "")
-        naver_client_secret = os.getenv("NAVER_CLIENT_SECRET", "")
-        redirect_uri        = os.getenv("NAVER_REDIRECT_URI",  "")
-
-        token_url = "https://nid.naver.com/oauth2.0/token"
-        token_data = {
-            "grant_type": "authorization_code",
-            "client_id": naver_client_id,
-            "client_secret": naver_client_secret,
-            "code": code,
-            "state": state,
-        }
-
-        token_response = requests.post(token_url, data=token_data)
-        token_json = token_response.json()
+        token_json = requests.post(
+            "https://nid.naver.com/oauth2.0/token",
+            data={
+                "grant_type":    "authorization_code",
+                "client_id":     settings.NAVER_CLIENT_ID,
+                "client_secret": settings.NAVER_CLIENT_SECRET,
+                "code":          code,
+                "state":         state,
+            },
+        ).json()
         naver_access_token = token_json.get("access_token")
-
         if not naver_access_token:
-            return Response({
-                "error": "네이버 access_token 발급 실패",
-                "detail": token_json
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "네이버 access_token 발급 실패", "detail": token_json},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        user_info_url = "https://openapi.naver.com/v1/nid/me"
-        headers = {"Authorization": f"Bearer {naver_access_token}"}
-        user_info_response = requests.get(user_info_url, headers=headers)
-        user_info_data = user_info_response.json()
+        user_info_data = requests.get(
+            "https://openapi.naver.com/v1/nid/me",
+            headers={"Authorization": f"Bearer {naver_access_token}"},
+        ).json()
 
         if user_info_data.get("resultcode") != "00":
             return Response({"error": "네이버 사용자 정보 조회 실패"}, status=status.HTTP_400_BAD_REQUEST)
 
-        response_data = user_info_data.get("response", {})
-        naver_id = response_data.get("id")
-        email = response_data.get("email")
-        nickname = response_data.get("nickname") or response_data.get("name") or ""
+        resp      = user_info_data.get("response", {})
+        naver_id  = resp.get("id")
+        email     = resp.get("email", "")
+        nickname  = resp.get("nickname") or resp.get("name") or ""
 
         if not naver_id:
             return Response({"error": "네이버 사용자 ID 없음"}, status=status.HTTP_400_BAD_REQUEST)
 
-        username = f"naver_{naver_id}"
-        user, created = User.objects.get_or_create(
-            username=username,
-            defaults={
-                "email": email or "",
-                "first_name": nickname or "",
-            }
-        )
-
-        if not created:
-            user.email = email or user.email
-            user.first_name = nickname or user.first_name
-            user.save()
-
-        session_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
-
-        refresh = RefreshToken.for_user(user)
-        response = redirect("/")
-        _set_token_cookies(response, refresh)
-        return response
+        return _oauth_upsert_and_redirect(request, f"naver_{naver_id}", email, nickname)

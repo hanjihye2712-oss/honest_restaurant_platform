@@ -6,22 +6,29 @@
 
   const NAVY  = '#1a2744';
   const RED   = '#c0392b';
-  const MUTED = '#888';
+  const MUTED = '#7A6A4A';
+  const CREAM = '#F5EDD0';
+
+  /* 캔버스 전체 배경을 크림색으로 채우는 플러그인 */
+  Chart.register({
+    id: 'salesCanvasBg',
+    beforeDraw(chart) {
+      const ctx = chart.canvas.getContext('2d');
+      ctx.save();
+      ctx.fillStyle = CREAM;
+      ctx.fillRect(0, 0, chart.canvas.width, chart.canvas.height);
+      ctx.restore();
+    }
+  });
 
   const scaleBase = {
     x: { ticks: { color: MUTED, font: { size: 11 } }, grid: { display: false } },
-    y: { ticks: { color: MUTED, font: { size: 11 } }, grid: { color: '#eee' } },
+    y: { ticks: { color: MUTED, font: { size: 11 } }, grid: { color: 'rgba(0,0,0,0.06)' } },
   };
 
   fetch('/sales/api/dashboard/')
     .then(res => res.json())
     .then(data => {
-      // 이번 달 매출 뱃지
-      const badge = document.getElementById('sales-monthly-badge');
-      if (badge) {
-        badge.textContent = '이번 달 ' + data.monthly_total.toLocaleString('ko-KR') + '원';
-      }
-
       // ── 메뉴별 판매량 바 차트 (클릭 → 상세 페이지) ──
       const menuCtx = document.getElementById('menuChart');
       const menuChart = new Chart(menuCtx, {

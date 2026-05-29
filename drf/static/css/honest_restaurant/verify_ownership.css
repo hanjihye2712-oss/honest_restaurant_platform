@@ -1,0 +1,74 @@
+/* ── 공통 레이아웃 ── */
+.reg-wrap { max-width:760px; margin:0 auto; padding:40px 24px 80px; }
+.reg-hero { text-align:center; margin-bottom:36px; }
+.reg-hero-badge { display:inline-block; background:var(--navy); color:var(--cream); font-size:11px; font-weight:700; letter-spacing:.1em; padding:4px 14px; margin-bottom:16px; }
+.reg-hero-title { font-family:var(--ff-poster); font-size:40px; color:var(--navy); letter-spacing:-1px; margin-bottom:12px; }
+.reg-hero-sub { font-size:14px; color:var(--muted); line-height:1.8; margin-bottom:32px; }
+.reg-steps { display:flex; align-items:center; justify-content:center; }
+.reg-step { display:flex; flex-direction:column; align-items:center; gap:6px; }
+.rs-circle { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; background:var(--tan); color:var(--muted); border:2px solid var(--tan); }
+.reg-step.done  .rs-circle { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+.reg-step.active .rs-circle { background:var(--red);  color:#fff;        border-color:var(--red); }
+.rs-label { font-size:11px; color:var(--muted); white-space:nowrap; }
+.reg-step.done  .rs-label  { color:var(--navy); font-weight:700; }
+.reg-step.active .rs-label { color:var(--red);  font-weight:700; }
+.reg-step-line { width:60px; height:2px; background:var(--tan); margin-bottom:18px; flex-shrink:0; }
+.reg-step-line.done   { background:var(--navy); }
+.reg-step-line.active { background:linear-gradient(to right,var(--navy),var(--red)); }
+
+/* ── 가게 요약 박스 ── */
+.vo-restaurant-box { background:var(--navy); color:var(--cream); padding:20px 24px; margin-bottom:24px; position:relative; }
+.vo-rb-label { font-size:10px; letter-spacing:.12em; color:rgba(245,237,208,.5); margin-bottom:6px; }
+.vo-rb-name  { font-family:var(--ff-poster); font-size:26px; color:var(--tan); margin-bottom:4px; letter-spacing:-0.5px; }
+.vo-rb-meta  { font-size:12px; color:rgba(245,237,208,.6); margin-bottom:10px; }
+.vo-rb-change { font-size:11px; color:rgba(245,237,208,.4); text-decoration:underline; }
+.vo-rb-change:hover { color:var(--tan); }
+
+/* ── 카드 ── */
+.vo-card { background:var(--cream); border:2px solid var(--navy); padding:28px; margin-bottom:20px; }
+.vo-card-head { display:flex; align-items:flex-start; gap:14px; margin-bottom:22px; }
+.vo-step-num { width:32px; height:32px; border-radius:50%; background:var(--navy); color:var(--cream); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+.vo-card-title { font-family:var(--ff-deco); font-size:17px; color:var(--navy); margin-bottom:4px; }
+.vo-card-sub   { font-size:12px; color:var(--muted); }
+
+/* ── 폼 ── */
+.vo-label { display:block; font-size:12px; font-weight:700; color:var(--navy); letter-spacing:.04em; margin-bottom:8px; }
+.vo-input-row { display:flex; gap:10px; margin-bottom:8px; }
+.vo-input { flex:1; padding:12px 16px; border:2px solid var(--tan); background:var(--paper); font-size:15px; font-family:var(--ff-body); color:var(--ink); outline:none; }
+.vo-input:focus { border-color:var(--navy); }
+.vo-hint { font-size:11px; color:var(--muted); }
+
+/* ── 버튼 ── */
+.vo-btn-primary { background:var(--navy); color:var(--cream); border:none; padding:12px 24px; font-family:var(--ff-deco); font-size:15px; cursor:pointer; letter-spacing:.05em; white-space:nowrap; }
+.vo-btn-primary:hover { background:var(--red); }
+.vo-btn-secondary { display:inline-block; background:transparent; border:2px solid var(--navy); color:var(--navy); padding:10px 20px; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:.03em; text-decoration:none; }
+.vo-btn-secondary:hover { background:var(--navy); color:var(--cream); }
+
+/* ── 오류 박스 ── */
+.vo-error-box { background:#fff0f0; border-left:4px solid var(--red); padding:12px 16px; margin-bottom:16px; font-size:13px; color:#7a0000; line-height:1.6; }
+
+/* ── 구분선 ── */
+.vo-divider { display:flex; align-items:center; gap:12px; margin:20px 0; color:var(--muted); font-size:12px; }
+.vo-divider::before, .vo-divider::after { content:''; flex:1; height:1px; background:var(--tan); }
+
+/* ── 대안 영역 ── */
+.vo-alt { text-align:center; }
+.vo-alt-text { font-size:13px; color:var(--muted); margin-bottom:10px; }
+
+/* ── 파일 업로드 ── */
+.vo-file-area { position:relative; border:2px dashed var(--tan); padding:24px; text-align:center; cursor:pointer; transition:border-color .15s; }
+.vo-file-area:hover { border-color:var(--navy); }
+.vo-file-input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.vo-file-label { display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; pointer-events:none; }
+.vo-file-icon  { font-size:32px; }
+.vo-file-label span:nth-child(2) { font-size:14px; color:var(--navy); font-weight:700; }
+.vo-file-hint  { font-size:11px; color:var(--muted); }
+
+/* ── 성공 상태 ── */
+.vo-result-box { background:var(--cream); border:2px solid var(--navy); padding:48px 32px; text-align:center; }
+.vo-result-box.success { border-color:#28a745; }
+.vo-result-icon  { font-size:48px; margin-bottom:16px; }
+.vo-result-title { font-family:var(--ff-poster); font-size:28px; color:var(--navy); margin-bottom:12px; }
+.vo-result-sub   { font-size:14px; color:var(--muted); line-height:1.8; margin-bottom:24px; }
+.vo-btn-home { display:inline-block; background:var(--navy); color:var(--cream); padding:12px 32px; font-family:var(--ff-deco); font-size:16px; letter-spacing:.05em; text-decoration:none; }
+.vo-btn-home:hover { background:var(--red); }

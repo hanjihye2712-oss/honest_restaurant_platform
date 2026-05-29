@@ -1,0 +1,107 @@
+{% extends "community/base.html" %}
+{% load static %}
+
+{% block page_title %}👥 소셜 · 팔로우{% endblock %}
+{% block page_sub %}믿을 수 있는 리뷰어를 팔로우하고 맛집 지도를 공유하세요{% endblock %}
+
+{% block comm_content %}
+
+<!-- ── 나의 소셜 통계 ── -->
+<div style="display:flex;gap:16px;margin-bottom:28px;">
+  <div class="comm-card" style="flex:1;text-align:center;">
+    <div style="font-family:var(--ff-poster);font-size:28px;color:var(--navy);">{{ following_count }}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">팔로잉</div>
+  </div>
+  <div class="comm-card" style="flex:1;text-align:center;">
+    <div style="font-family:var(--ff-poster);font-size:28px;color:var(--navy);">{{ follower_count }}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">팔로워</div>
+  </div>
+  <div class="comm-card" style="flex:1;text-align:center;">
+    <div style="font-family:var(--ff-poster);font-size:28px;color:#c8a96e;">{{ bookmarked_restaurants|length }}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px;">내 저장 맛집</div>
+  </div>
+</div>
+
+<div class="comm-grid-2" style="align-items:start;">
+
+  <!-- ── 팔로잉 목록 ── -->
+  <div>
+    <div class="comm-section-title">✅ 팔로잉 중</div>
+    {% for f in following %}
+    <div class="follow-card">
+      <div class="follow-avatar">{{ f.avatar }}</div>
+      <div>
+        <div class="follow-name">
+          {{ f.username }}
+          {% if f.certified %}<span class="status-badge certified" style="margin-left:6px;">인증</span>{% endif %}
+        </div>
+        <div class="follow-meta">리뷰 {{ f.reviews }}건</div>
+      </div>
+      <div class="follow-btn-wrap">
+        <button class="comm-btn outline" style="font-size:11px;padding:6px 14px;">언팔로우</button>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- ── 추천 리뷰어 ── -->
+    <div class="comm-section-title" style="margin-top:28px;">💡 팔로우 추천</div>
+    {% for f in suggestions %}
+    <div class="follow-card">
+      <div class="follow-avatar">{{ f.avatar }}</div>
+      <div>
+        <div class="follow-name">
+          {{ f.username }}
+          {% if f.certified %}<span class="status-badge certified" style="margin-left:6px;">인증</span>{% endif %}
+        </div>
+        <div class="follow-meta">{{ f.reason }} · 리뷰 {{ f.reviews }}건</div>
+      </div>
+      <div class="follow-btn-wrap">
+        <button class="comm-btn" style="font-size:11px;padding:6px 14px;">팔로우</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── 내 맛집 지도 공유 ── -->
+  <div>
+    <div class="comm-section-title">🗺️ 내 맛집 지도 공유</div>
+    <div class="comm-card" style="margin-bottom:14px;">
+      <!-- 지도 플레이스홀더 -->
+      <div style="background:#e8e0d5;border-radius:8px;height:220px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;">
+        <div style="text-align:center;color:var(--muted);">
+          <div style="font-size:32px;margin-bottom:8px;">🗺️</div>
+          <div style="font-size:13px;">카카오맵 연동 예정</div>
+          <div style="font-size:11px;margin-top:4px;">저장한 {{ bookmarked_restaurants|length }}곳이 표시됩니다</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">저장한 맛집 목록</div>
+      {% for r in bookmarked_restaurants %}
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--tan);font-size:13px;">
+        <span style="font-weight:600;color:var(--navy);">{{ r.name }}</span>
+        <span style="color:var(--muted);">{{ r.address }}</span>
+      </div>
+      {% endfor %}
+      <button class="comm-btn full" style="margin-top:16px;">🔗 지도 링크 공유</button>
+    </div>
+
+    <!-- 팔로워 피드 -->
+    <div class="comm-section-title">📰 팔로잉 피드</div>
+    <div class="comm-card">
+      <div style="padding:12px 0;border-bottom:1px solid var(--tan);">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">foodlover_kim · 방금 전</div>
+        <div style="font-size:13px;color:var(--ink);">신목사골칼국수 후기 — 사골 국물이 진짜 진해요. 강력 추천! ⭐⭐⭐⭐⭐</div>
+      </div>
+      <div style="padding:12px 0;border-bottom:1px solid var(--tan);">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">honest_eater · 2시간 전</div>
+        <div style="font-size:13px;color:var(--ink);">형제육회 영수증 인증 완료 — 메뉴판 가격 그대로. 정직한 가게입니다 🧾</div>
+      </div>
+      <div style="padding:12px 0;">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">seoul_foodie · 5시간 전</div>
+        <div style="font-size:13px;color:var(--ink);">강남구 냉면 챌린지 2/3 달성! 한 곳만 더 가면 뱃지 획득 🏅</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

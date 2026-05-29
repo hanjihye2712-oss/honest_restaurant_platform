@@ -62,6 +62,26 @@ def parse_date(val) -> "datetime.date | None":
     return None
 
 
+def parse_datetime(val) -> "datetime | None":
+    """YYYY-MM-DD HH:MM:SS 형식 → datetime 객체. 파싱 불가 시 None 반환."""
+    if not val or not str(val).strip():
+        return None
+    try:
+        return datetime.strptime(str(val).strip(), "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
+
+def parse_float(val) -> "float | None":
+    """문자열 → float. 빈 값이거나 파싱 불가 시 None 반환."""
+    if not val or not str(val).strip():
+        return None
+    try:
+        return float(str(val).strip())
+    except ValueError:
+        return None
+
+
 def address_prefix_q(addr: str, prefix_len: int = _ADDR_PREFIX_LEN) -> Q:
     """주소 앞 prefix_len자로 road/jibun 양쪽을 OR 필터하는 Q 객체 반환."""
     prefix = addr[:prefix_len]
@@ -212,10 +232,10 @@ class NationalRestaurantSyncer:
             "business_type"          : row.get("BZSTAT_SE_NM", "").strip(),
             "category_name"          : "",
             "sanitation_business_type": row.get("SNTTN_BZSTAT_NM", "").strip(),
-            "license_date"           : self._parse_date_iso(row.get("LCPMT_YMD")),
+            "license_date"           : parse_date(row.get("LCPMT_YMD")),
             "status_code"            : row.get("SALS_STTS_CD", "").strip(),
-            "area"                   : self._parse_float(row.get("FCLT_TOTAL_SCL")),
-            "last_modified_at"       : self._parse_datetime_iso(row.get("DAT_UPDT_PNT")),
+            "area"                   : parse_float(row.get("FCLT_TOTAL_SCL")),
+            "last_modified_at"       : parse_datetime(row.get("DAT_UPDT_PNT")),
             "latitude"               : lat,
             "longitude"              : lng,
         }
@@ -228,33 +248,6 @@ class NationalRestaurantSyncer:
             if province:
                 return province
         return addr.split()[0] if addr else ""
-
-    @staticmethod
-    def _parse_date_iso(val) -> "datetime.date | None":
-        if not val or not val.strip():
-            return None
-        try:
-            return datetime.strptime(val.strip(), "%Y-%m-%d").date()
-        except ValueError:
-            return None
-
-    @staticmethod
-    def _parse_datetime_iso(val) -> "datetime | None":
-        if not val or not val.strip():
-            return None
-        try:
-            return datetime.strptime(val.strip(), "%Y-%m-%d %H:%M:%S")
-        except ValueError:
-            return None
-
-    @staticmethod
-    def _parse_float(val) -> "float | None":
-        if not val or not val.strip():
-            return None
-        try:
-            return float(val.strip())
-        except ValueError:
-            return None
 
 
 # ══════════════════════════════════════════════════════════════
@@ -571,3 +564,56 @@ class GoodPriceShopSyncer:
             elif m:
                 parts.append(m)
         return " / ".join(parts)
+
+
+# ══════════════════════════════════════════════════════════════
+# 국세청 사업자등록정보 진위확인 API
+# ══════════════════════════════════════════════════════════════
+
+NTS_API_URL = "https://api.odcloud.kr/api/nts-businessman/v1/status"
+
+
+def verify_business_number(business_number: str) -> dict:
+    """
+    국세청 사업자등록정보 상태조회 API 호출.
+
+    Args:
+        business_number: 사업자등록번호 (하이픈 포함/미포함 모두 허용)
+
+    Returns:
+        {
+            "success": True/False,
+            "is_active": True/False,   # 계속사업자 여부
+            "status_text": "계속사업자" | "휴업자" | "폐업자" | ...,
+            "error": "오류 메시지 (실패 시)",
+        }
+    """
+    b_no = business_number.replace("-", "").strip()
+    if len(b_no) != 10 or not b_no.isdigit():
+        return {"success": False, "is_active": False, "error": "사업자등록번호는 10자리 숫자여야 합니다."}
+
+    service_key = settings.NATIONAL_API_KEY
+    try:
+        resp = requests.post(
+            NTS_API_URL,
+            params={"serviceKey": service_key},
+            json={"b_no": [b_no]},
+            timeout=5,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        items = data.get("data", [])
+        if not items:
+            return {"success": False, "is_active": False, "error": "조회 결과가 없습니다."}
+
+        item       = items[0]
+        b_stt_cd   = item.get("b_stt_cd", "")
+        status_text = item.get("b_stt", "알 수 없음")
+        is_active  = b_stt_cd == "01"
+
+        return {"success": True, "is_active": is_active, "status_text": status_text}
+
+    except requests.Timeout:
+        return {"success": False, "is_active": False, "error": "국세청 API 응답 시간 초과"}
+    except Exception as exc:
+        return {"success": False, "is_active": False, "error": str(exc)}

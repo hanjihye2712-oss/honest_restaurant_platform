@@ -68,6 +68,9 @@ class Review(models.Model):
         related_name="interaction_reviews",
     )
     content = models.TextField(verbose_name="리뷰 내용")
+    image   = models.ImageField(upload_to="review_images/", blank=True, null=True, verbose_name="리뷰 이미지 1")
+    image_2 = models.ImageField(upload_to="review_images/", blank=True, null=True, verbose_name="리뷰 이미지 2")
+    image_3 = models.ImageField(upload_to="review_images/", blank=True, null=True, verbose_name="리뷰 이미지 3")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

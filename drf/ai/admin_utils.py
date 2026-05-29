@@ -33,7 +33,7 @@ def score_bar(score: float | None, label: str | None) -> str:
         '<div style="width:120px;background:#e9ecef;border-radius:4px;height:10px;">'
         '<div style="width:{}%;background:{};border-radius:4px;height:10px;"></div>'
         '</div>'
-        '<span style="font-size:13px;font-weight:600;">{:.1f}%</span>'
+        '<span style="font-size:13px;font-weight:600;">{}%</span>'
         '</div>',
-        pct, color, score * 100,
+        pct, color, f"{score * 100:.1f}",
     )

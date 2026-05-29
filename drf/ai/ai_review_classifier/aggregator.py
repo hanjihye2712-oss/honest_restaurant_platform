@@ -9,6 +9,8 @@ import logging
 from collections import Counter
 from datetime import timedelta
 
+from django.conf import settings
+from django.db.models import Count, Q
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -36,8 +38,11 @@ def aggregate_restaurant_ai(restaurant_id: int) -> None:
     ReviewClassificationResult + SentimentResult를 집계해 RestaurantAIProfile을 갱신한다.
     분석된 리뷰가 없으면 조용히 종료한다.
     """
-    from honest_restaurant.models import PublicRestaurantData
+    # 앱 초기화 시점에 honest_restaurant·ai_sentiment·ai_ocr 앱이 아직 준비되지
+    # 않을 수 있고, 서로 간의 참조가 순환 import를 유발할 수 있어 지연 import 처리
+    from honest_restaurant.models import PublicRestaurantData, ReceiptVerification
     from ai.ai_sentiment.models import SentimentResult
+    from ai.ai_ocr.services import calc_price_score
     from .models import ReviewClassificationResult, RestaurantAIProfile
 
     now        = timezone.now()
@@ -85,8 +90,7 @@ def aggregate_restaurant_ai(restaurant_id: int) -> None:
     )
 
     # ── 위생 경고: 최근 14일 위생 부정 비율 ────────────────────────────
-    from django.conf import settings as _settings
-    _hygiene_threshold = getattr(_settings, "HYGIENE_ALERT_THRESHOLD", 0.30)
+    _hygiene_threshold = settings.HYGIENE_ALERT_THRESHOLD
 
     recent_rows    = [r for r in rows if r["review__created_at"] >= cutoff_14d]
     recent_total   = len(recent_rows)
@@ -98,19 +102,34 @@ def aggregate_restaurant_ai(restaurant_id: int) -> None:
     hygiene_alert  = hygiene_ratio >= _hygiene_threshold
 
     # ── 감성 비율 (90일, SentimentResult 기준) ─────────────────────────
-    sentiment_qs     = SentimentResult.objects.filter(
+    sentiment_agg = SentimentResult.objects.filter(
         review__restaurant_id=restaurant_id,
         status=SentimentResult.STATUS_DONE,
         review__created_at__gte=cutoff_90d,
+    ).aggregate(
+        total=Count("pk"),
+        positive=Count("pk", filter=Q(label="긍정")),
+        negative=Count("pk", filter=Q(label="부정")),
     )
-    total_sentiment  = sentiment_qs.count()
-    positive_count   = sentiment_qs.filter(label="긍정").count() if total_sentiment else 0
-    negative_count   = sentiment_qs.filter(label="부정").count() if total_sentiment else 0
-    positive_ratio   = positive_count / total_sentiment if total_sentiment else 0.0
-    negative_ratio   = negative_count / total_sentiment if total_sentiment else 0.0
+    total_sentiment = sentiment_agg["total"]
+    positive_count  = sentiment_agg["positive"]
+    negative_count  = sentiment_agg["negative"]
+    positive_ratio  = positive_count / total_sentiment if total_sentiment else 0.0
+    negative_ratio  = negative_count / total_sentiment if total_sentiment else 0.0
 
     ai_bonus   = _calc_score(positive_ratio, _BONUS_TABLE)
     ai_penalty = _calc_score(negative_ratio, _PENALTY_TABLE)
+
+    # ── 가격 일치율 집계 (ReceiptVerification OCR 결과) ─────────────────
+    ocr_qs = ReceiptVerification.objects.filter(
+        restaurant_id=restaurant_id,
+        price_match_rate__isnull=False,
+    ).values_list("price_match_rate", flat=True)
+    ocr_rates      = list(ocr_qs)
+    ocr_count      = len(ocr_rates)
+    avg_match_rate = sum(ocr_rates) / ocr_count if ocr_count else None
+    price_score    = calc_price_score(avg_match_rate, ocr_count) if avg_match_rate is not None else 0
+    price_verified = ocr_count > 0
 
     # ── 골목장인 자격 (영업 3년 이상 + 태그 비율 70% 이상) ─────────────
     restaurant   = PublicRestaurantData.objects.get(pk=restaurant_id)
@@ -133,11 +152,16 @@ def aggregate_restaurant_ai(restaurant_id: int) -> None:
             "top_negative_tags":              top_negative_tags,
             "recent_hygiene_negative_ratio":  round(hygiene_ratio, 4),
             "hygiene_alert":                  hygiene_alert,
+            "price_match_rate":               round(avg_match_rate, 4) if avg_match_rate is not None else None,
+            "price_match_score":              price_score,
+            "receipt_ocr_count":              ocr_count,
+            "price_is_verified":              price_verified,
             "review_count_analyzed":          total,
             "last_calculated_at":             now,
         },
     )
     logger.info(
-        "AI 프로필 집계 완료 restaurant_id=%s alley=%.0f%% ai=%+d 위생경고=%s",
+        "AI 프로필 집계 완료 restaurant_id=%s alley=%.0f%% ai=%+d 위생경고=%s 가격일치율=%s(%d건)",
         restaurant_id, alley_ratio * 100, ai_bonus + ai_penalty, hygiene_alert,
+        f"{avg_match_rate * 100:.0f}%" if avg_match_rate is not None else "N/A", ocr_count,
     )

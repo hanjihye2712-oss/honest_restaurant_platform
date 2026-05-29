@@ -1,21 +1,13 @@
 {% load static %}
 
 <!-- 매출 분석 차트 블록 (owner_dashboard.html 에서 include) -->
-<div class="opg-block opg-block--full">
-  <div class="opg-head">
-    <a href="/sales/detail/" class="chart-detail-title">매출분석 상세보기 →</a>
-    <span id="sales-monthly-badge" class="opg-tag">집계 중…</span>
+<div class="bottom-grid">
+  <div class="bottom-card">
+    <div class="bc-title">이번 달 판매량 TOP 5</div>
+    <canvas id="menuChart" height="200"></canvas>
   </div>
-  <div class="opg-body">
-    <div class="sales-chart-grid">
-      <div class="sales-chart-box">
-        <p class="sales-chart-title">이번 달 판매량 Top 5</p>
-        <canvas id="menuChart" height="200"></canvas>
-      </div>
-      <div class="sales-chart-box">
-        <p class="sales-chart-title">최근 일별 매출 (원)</p>
-        <canvas id="dailyChart" height="200"></canvas>
-      </div>
-    </div>
+  <div class="bottom-card">
+    <div class="bc-title">최근 일별 매출 (원)<a href="/sales/detail/" class="sh-link" style="font-size:12px;font-family:var(--ff-deco);font-weight:400">매출분석 상세보기 →</a></div>
+    <canvas id="dailyChart" height="200"></canvas>
   </div>
 </div>

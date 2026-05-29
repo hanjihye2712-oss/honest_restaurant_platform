@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 대시보드 디자인 후보</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Pretendard', 'Apple SD Gothic Neo', sans-serif; background: #f0f0ec; }
+
+  .page-header {
+    background: #0f1d3c;
+    color: #fff;
+    padding: 28px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .page-header h1 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+  .page-header p  { font-size: 13px; color: #aab; margin-top: 4px; }
+  .page-header a  { background: #c8a96e; color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+
+  .candidates { display: flex; flex-direction: column; gap: 80px; padding: 60px 48px; }
+
+  .candidate { }
+  .candidate-label {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px;
+  }
+  .candidate-label .badge {
+    background: #0f1d3c; color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em;
+    padding: 4px 12px; border-radius: 999px;
+  }
+  .candidate-label h2 { font-size: 22px; font-weight: 800; color: #0f1d3c; }
+  .candidate-label p  { font-size: 13px; color: #666; margin-top: 2px; }
+  .candidate-label .tag {
+    font-size: 11px; background: #eee; color: #555;
+    padding: 3px 10px; border-radius: 999px; margin-left: 4px;
+  }
+  .preview-wrap {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,.15);
+    border: 1px solid rgba(0,0,0,.08);
+  }
+
+  /* ═══════════════════════════════════════
+     CANDIDATE A — 다크 프리미엄
+  ═══════════════════════════════════════ */
+  .theme-dark {
+    background: #0d1b2a;
+    padding: 0;
+  }
+  .td-topbar {
+    background: #0a1520;
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .td-logo { display: flex; align-items: center; gap: 10px; }
+  .td-logo-box {
+    width: 32px; height: 32px; background: #c8a96e;
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 900; color: #0d1b2a;
+  }
+  .td-logo-name { color: #fff; font-size: 14px; font-weight: 700; letter-spacing: .05em; }
+  .td-logo-sub  { color: #556; font-size: 9px; letter-spacing: .15em; }
+  .td-user { color: #889; font-size: 12px; }
+
+  .td-body { display: flex; }
+  .td-sidebar {
+    width: 200px; background: #0a1520; min-height: 520px;
+    padding: 24px 0;
+    border-right: 1px solid rgba(255,255,255,.05);
+    flex-shrink: 0;
+  }
+  .td-sidebar-title {
+    font-size: 9px; color: #445; letter-spacing: .15em;
+    padding: 0 20px 10px; text-transform: uppercase;
+  }
+  .td-nav-item {
+    padding: 10px 20px; font-size: 12px; color: #8899aa;
+    display: flex; align-items: center; gap: 10px; cursor: pointer;
+  }
+  .td-nav-item.active { background: rgba(200,169,110,.12); color: #c8a96e; border-left: 2px solid #c8a96e; }
+  .td-nav-icon { width: 16px; text-align: center; font-size: 13px; }
+
+  .td-main { flex: 1; padding: 28px 32px; }
+  .td-header-row {
+    display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px;
+  }
+  .td-page-title { font-size: 20px; font-weight: 800; color: #fff; }
+  .td-page-sub   { font-size: 11px; color: #556; margin-top: 4px; }
+  .td-date       { font-size: 11px; color: #667; }
+
+  .td-kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .td-kpi-card {
+    background: #111f30; border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px; padding: 18px 16px;
+    cursor: pointer; transition: border-color .2s, transform .2s;
+  }
+  .td-kpi-card:hover { border-color: #c8a96e; transform: translateY(-2px); }
+  .td-kpi-card.alert { border-color: rgba(220,80,80,.4); }
+  .td-kpi-card.warn  { border-color: rgba(230,130,40,.4); }
+  .td-kpi-lbl  { font-size: 9px; color: #556; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; }
+  .td-kpi-val  { font-size: 28px; font-weight: 800; color: #fff; line-height: 1; }
+  .td-kpi-val.red  { color: #e05050; }
+  .td-kpi-val.amber{ color: #e67e22; }
+  .td-kpi-sub  { font-size: 10px; color: #445; margin-top: 8px; }
+
+  .td-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .td-section {
+    background: #111f30; border: 1px solid rgba(255,255,255,.06);
+    border-radius: 10px; padding: 18px 20px;
+  }
+  .td-sec-title { font-size: 11px; font-weight: 700; color: #c8a96e; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+  .td-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .td-table th { color: #445; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.06); text-align: left; }
+  .td-table td { color: #8899aa; padding: 8px 8px; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .td-table td:first-child { color: #ccd; }
+  .td-badge {
+    display: inline-block; font-size: 9px; padding: 2px 8px; border-radius: 999px;
+    font-weight: 700;
+  }
+  .td-badge.ok      { background: rgba(40,180,100,.2); color: #40c070; }
+  .td-badge.pending { background: rgba(200,169,110,.2); color: #c8a96e; }
+  .td-badge.danger  { background: rgba(220,80,80,.2); color: #e05050; }
+
+  /* ═══════════════════════════════════════
+     CANDIDATE B — 모던 클린 (SaaS)
+  ═══════════════════════════════════════ */
+  .theme-clean {
+    background: #f5f7fb;
+  }
+  .tc-topbar {
+    background: #fff;
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+    border-bottom: 1px solid #eaecf0;
+  }
+  .tc-logo { display: flex; align-items: center; gap: 10px; }
+  .tc-logo-box {
+    width: 30px; height: 30px; background: #4361ee;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 900; color: #fff;
+  }
+  .tc-logo-name { color: #1a1a2e; font-size: 14px; font-weight: 700; }
+  .tc-topnav { display: flex; gap: 4px; }
+  .tc-topnav-item {
+    padding: 6px 14px; font-size: 12px; color: #667; border-radius: 6px; cursor: pointer;
+  }
+  .tc-topnav-item.active { background: #eef0ff; color: #4361ee; font-weight: 600; }
+  .tc-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #667; }
+  .tc-avatar {
+    width: 28px; height: 28px; background: #4361ee; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700;
+  }
+
+  .tc-body { padding: 28px 32px; }
+  .tc-page-header { margin-bottom: 24px; }
+  .tc-page-title { font-size: 22px; font-weight: 800; color: #1a1a2e; }
+  .tc-page-sub   { font-size: 12px; color: #99a; margin-top: 4px; }
+
+  .tc-kpi { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+  .tc-kpi-card {
+    background: #fff; border-radius: 12px; padding: 20px;
+    border: 1px solid #eaecf0; cursor: pointer;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .tc-kpi-card:hover { box-shadow: 0 4px 20px rgba(67,97,238,.12); transform: translateY(-2px); }
+  .tc-kpi-card.alert { border-left: 3px solid #ef4444; }
+  .tc-kpi-card.warn  { border-left: 3px solid #f59e0b; }
+  .tc-kpi-icon { font-size: 20px; margin-bottom: 12px; }
+  .tc-kpi-lbl  { font-size: 11px; color: #99a; font-weight: 600; margin-bottom: 6px; }
+  .tc-kpi-val  { font-size: 30px; font-weight: 800; color: #1a1a2e; line-height: 1; }
+  .tc-kpi-val.red   { color: #ef4444; }
+  .tc-kpi-val.amber { color: #f59e0b; }
+  .tc-kpi-sub  { font-size: 11px; color: #bbc; margin-top: 8px; }
+  .tc-kpi-trend { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 600; margin-top: 6px; }
+  .tc-kpi-trend.up   { color: #10b981; }
+  .tc-kpi-trend.down { color: #ef4444; }
+
+  .tc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .tc-section { background: #fff; border-radius: 12px; border: 1px solid #eaecf0; padding: 20px; }
+  .tc-sec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .tc-sec-title  { font-size: 13px; font-weight: 700; color: #1a1a2e; }
+  .tc-sec-more   { font-size: 11px; color: #4361ee; font-weight: 600; cursor: pointer; }
+  .tc-stats { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tc-stat { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; }
+  .tc-stat.pending { background: #fef3c7; color: #d97706; }
+  .tc-stat.ok      { background: #d1fae5; color: #059669; }
+  .tc-stat.bad     { background: #fee2e2; color: #ef4444; }
+  .tc-stat.neutral { background: #f3f4f6; color: #6b7280; }
+  .tc-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tc-table th { color: #9aa; font-size: 10px; font-weight: 700; padding: 6px 8px; border-bottom: 2px solid #f0f0f0; text-align: left; letter-spacing: .06em; }
+  .tc-table td { color: #334; padding: 9px 8px; border-bottom: 1px solid #f5f5f5; }
+  .tc-badge { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+  .tc-badge.ok      { background: #d1fae5; color: #059669; }
+  .tc-badge.pending { background: #fef3c7; color: #d97706; }
+  .tc-badge.bad     { background: #fee2e2; color: #ef4444; }
+
+  /* ═══════════════════════════════════════
+     CANDIDATE C — 웜 어스 (따뜻한 베이지)
+  ═══════════════════════════════════════ */
+  .theme-warm {
+    background: #faf6f0;
+  }
+  .tw-topbar {
+    background: #2c1810;
+    padding: 0 36px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 60px;
+  }
+  .tw-logo { display: flex; align-items: center; gap: 12px; }
+  .tw-logo-box {
+    width: 34px; height: 34px; background: #e8935a;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 900; color: #fff;
+  }
+  .tw-logo-name { color: #f5e6d3; font-size: 15px; font-weight: 700; }
+  .tw-logo-sub  { color: #7a5a4a; font-size: 9px; letter-spacing: .15em; }
+  .tw-user { color: #8a6a5a; font-size: 12px; }
+  .tw-announce {
+    background: #e8935a; color: #fff;
+    font-size: 11px; font-weight: 600; text-align: center; padding: 8px;
+    letter-spacing: .06em;
+  }
+
+  .tw-body { padding: 32px 36px; }
+  .tw-page-header { margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
+  .tw-page-title { font-size: 24px; font-weight: 900; color: #2c1810; }
+  .tw-page-sub   { font-size: 12px; color: #a08070; margin-top: 4px; }
+  .tw-date       { font-size: 12px; color: #a08070; }
+
+  .tw-kpi { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+  .tw-kpi-card {
+    background: #fff; border-radius: 14px; padding: 20px;
+    border: 1.5px solid #e8d5c0; cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+  }
+  .tw-kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: #e8935a;
+  }
+  .tw-kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(44,24,16,.1); }
+  .tw-kpi-card.alert::before { background: #c0392b; }
+  .tw-kpi-card.warn::before  { background: #e67e22; }
+  .tw-kpi-lbl  { font-size: 10px; color: #b08060; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+  .tw-kpi-val  { font-size: 32px; font-weight: 900; color: #2c1810; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tw-kpi-val.red   { color: #c0392b; }
+  .tw-kpi-val.amber { color: #e67e22; }
+  .tw-kpi-sub  { font-size: 10px; color: #c0a090; margin-top: 8px; }
+
+  .tw-divider { height: 1px; background: #e8d5c0; margin: 0 0 28px; }
+
+  .tw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .tw-section { background: #fff; border-radius: 14px; border: 1.5px solid #e8d5c0; padding: 22px; }
+  .tw-sec-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .tw-sec-title  { font-size: 13px; font-weight: 800; color: #2c1810; }
+  .tw-sec-more   { font-size: 11px; color: #e8935a; font-weight: 700; cursor: pointer; }
+  .tw-divider-sm { height: 1px; background: #f0e0d0; margin: 10px 0 14px; }
+  .tw-stats { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tw-stat { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; border: 1px solid; }
+  .tw-stat.pending { border-color: #e67e22; color: #e67e22; background: #fff8f3; }
+  .tw-stat.ok      { border-color: #27ae60; color: #27ae60; background: #f0fff4; }
+  .tw-stat.bad     { border-color: #c0392b; color: #c0392b; background: #fff5f5; }
+  .tw-stat.neutral { border-color: #b08060; color: #b08060; background: #faf6f0; }
+  .tw-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tw-table th {
+    color: #c0a090; font-size: 10px; font-weight: 700; padding: 6px 8px;
+    border-bottom: 1.5px solid #e8d5c0; text-align: left; letter-spacing: .06em;
+  }
+  .tw-table td { color: #4a3020; padding: 9px 8px; border-bottom: 1px solid #f5ede5; }
+  .tw-badge { display: inline-block; font-size: 10px; padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+  .tw-badge.ok      { background: #d5f5e3; color: #1e8449; }
+  .tw-badge.pending { background: #fdebd0; color: #e67e22; }
+  .tw-badge.bad     { background: #fadbd8; color: #c0392b; }
+
+  /* 선택 버튼 */
+  .select-bar {
+    margin-top: 24px; padding: 20px 32px;
+    background: rgba(255,255,255,.8); border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.08);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .select-bar-label { font-size: 13px; color: #555; }
+  .select-bar-label strong { color: #0f1d3c; }
+  .select-btn {
+    background: #0f1d3c; color: #fff;
+    border: none; padding: 10px 28px; border-radius: 8px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    text-decoration: none; display: inline-block;
+  }
+  .select-btn:hover { background: #1a3055; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <h1>관리자 대시보드 디자인 후보</h1>
+    <p>3가지 시안 중 원하는 디자인을 선택해주세요</p>
+  </div>
+  <a href="/management/">← 현재 버전으로 돌아가기</a>
+</div>
+
+<div class="candidates">
+
+  <!-- ══════════════════════════════════
+       CANDIDATE A — 다크 프리미엄
+  ══════════════════════════════════ -->
+  <div class="candidate">
+    <div class="candidate-label">
+      <span class="badge">A안</span>
+      <div>
+        <h2>다크 프리미엄</h2>
+        <div>
+          <p style="display:inline">딥 네이비 + 골드 포인트 · 사이드바 레이아웃</p>
+          <span class="tag">고급스러운 느낌</span>
+          <span class="tag">야간 작업 편함</span>
+        </div>
+      </div>
+    </div>
+    <div class="preview-wrap">
+      <div class="theme-dark">
+        <div class="td-topbar">
+          <div class="td-logo">
+            <div class="td-logo-box">正</div>
+            <div>
+              <div class="td-logo-name">정직식당</div>
+              <div class="td-logo-sub">HONEST RESTAURANT</div>
+            </div>
+          </div>
+          <div class="td-user">admin님 ☰</div>
+        </div>
+        <div class="td-body">
+          <div class="td-sidebar">
+            <div class="td-sidebar-title">MENU</div>
+            <div class="td-nav-item active"><span class="td-nav-icon">📊</span>운영 현황</div>
+            <div class="td-nav-item"><span class="td-nav-icon">🏪</span>식당 관리</div>
+            <div class="td-nav-item"><span class="td-nav-icon">👥</span>회원 관리</div>
+            <div class="td-nav-item"><span class="td-nav-icon">🧾</span>영수증 인증</div>
+            <div class="td-nav-item"><span class="td-nav-icon">🤖</span>AI 분석</div>
+            <div class="td-nav-item"><span class="td-nav-icon">📢</span>마케팅</div>
+            <div class="td-nav-item"><span class="td-nav-icon">⚙️</span>설정</div>
+          </div>
+          <div class="td-main">
+            <div class="td-header-row">
+              <div>
+                <div class="td-page-title">운영 현황 대시보드</div>
+                <div class="td-page-sub">실시간 데이터 기준</div>
+              </div>
+              <div class="td-date">2026.05.29 10:29</div>
+            </div>
+            <div class="td-kpi">
+              <div class="td-kpi-card">
+                <div class="td-kpi-lbl">전체 회원</div>
+                <div class="td-kpi-val">483</div>
+                <div class="td-kpi-sub">사장님 1 · 손님 481</div>
+              </div>
+              <div class="td-kpi-card">
+                <div class="td-kpi-lbl">API 연동 식당</div>
+                <div class="td-kpi-val">523,695</div>
+                <div class="td-kpi-sub">연동 1 · SNS 0</div>
+              </div>
+              <div class="td-kpi-card alert">
+                <div class="td-kpi-lbl">매장 등록 신청 대기</div>
+                <div class="td-kpi-val red">0</div>
+                <div class="td-kpi-sub">승인 2 · 거절 0</div>
+              </div>
+              <div class="td-kpi-card warn">
+                <div class="td-kpi-lbl">영수증 인증 대기</div>
+                <div class="td-kpi-val amber">5</div>
+                <div class="td-kpi-sub">완료 472 · 거부 1</div>
+              </div>
+              <div class="td-kpi-card">
+                <div class="td-kpi-lbl">전체 리뷰</div>
+                <div class="td-kpi-val">219</div>
+                <div class="td-kpi-sub">최근 7일 12건</div>
+              </div>
+              <div class="td-kpi-card warn">
+                <div class="td-kpi-lbl">허위 리뷰 탐지</div>
+                <div class="td-kpi-val amber">18</div>
+                <div class="td-kpi-sub">분석 대기 0건</div>
+              </div>
+              <div class="td-kpi-card alert">
+                <div class="td-kpi-lbl">위생 경고 식당</div>
+                <div class="td-kpi-val red">0</div>
+                <div class="td-kpi-sub">골목장인 6곳</div>
+              </div>
+              <div class="td-kpi-card">
+                <div class="td-kpi-lbl">신규 가입 (7일)</div>
+                <div class="td-kpi-val">478</div>
+                <div class="td-kpi-sub">30일 483명</div>
+              </div>
+            </div>
+            <div class="td-grid">
+              <div class="td-section">
+                <div class="td-sec-title">매장 등록 신청 현황</div>
+                <table class="td-table">
+                  <thead><tr><th>신청자</th><th>식당명</th><th>신청일</th><th>상태</th></tr></thead>
+                  <tbody>
+                    <tr><td>hanjihye</td><td>신목사골칼국수</td><td>05/26</td><td><span class="td-badge ok">승인</span></td></tr>
+                    <tr><td>dummy_u01</td><td>형제육회</td><td>05/20</td><td><span class="td-badge pending">대기</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="td-section">
+                <div class="td-sec-title">최근 리뷰</div>
+                <table class="td-table">
+                  <thead><tr><th>작성자</th><th>식당명</th><th>내용</th><th>작성일</th></tr></thead>
+                  <tbody>
+                    <tr><td>hanjihye</td><td>형제육회</td><td>진짜 오래된 집인데...</td><td>05/29</td></tr>
+                    <tr><td>dummy_u001</td><td>신목사골칼국수</td><td>점심 때 방문했는데...</td><td>05/28</td></tr>
+                    <tr><td>dummy_u003</td><td>신목사골칼국수</td><td>사골 국물이 진해서...</td><td>05/27</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="select-bar">
+      <div class="select-bar-label"><strong>A안 · 다크 프리미엄</strong> — 딥 네이비 배경, 골드 포인트, 좌측 사이드바 내비게이션</div>
+      <a href="mailto:hanjihye2712@gmail.com?subject=관리자 대시보드 A안 선택" class="select-btn">이 디자인 선택 →</a>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════
+       CANDIDATE B — 모던 클린 (SaaS)
+  ══════════════════════════════════ -->
+  <div class="candidate">
+    <div class="candidate-label">
+      <span class="badge" style="background:#4361ee">B안</span>
+      <div>
+        <h2>모던 클린</h2>
+        <div>
+          <p style="display:inline">화이트 + 블루 포인트 · 상단 탭 내비게이션</p>
+          <span class="tag">SaaS 스타일</span>
+          <span class="tag">가독성 최고</span>
+        </div>
+      </div>
+    </div>
+    <div class="preview-wrap">
+      <div class="theme-clean">
+        <div class="tc-topbar">
+          <div class="tc-logo">
+            <div class="tc-logo-box">正</div>
+            <span class="tc-logo-name">정직식당 관리자</span>
+          </div>
+          <div class="tc-topnav">
+            <div class="tc-topnav-item active">대시보드</div>
+            <div class="tc-topnav-item">식당</div>
+            <div class="tc-topnav-item">회원</div>
+            <div class="tc-topnav-item">AI 분석</div>
+            <div class="tc-topnav-item">마케팅</div>
+          </div>
+          <div class="tc-user">
+            <div class="tc-avatar">A</div>
+            admin님
+          </div>
+        </div>
+        <div class="tc-body">
+          <div class="tc-page-header">
+            <div class="tc-page-title">운영 현황 대시보드</div>
+            <div class="tc-page-sub">2026.05.29 10:29 · 실시간 업데이트</div>
+          </div>
+          <div class="tc-kpi">
+            <div class="tc-kpi-card">
+              <div class="tc-kpi-icon">👥</div>
+              <div class="tc-kpi-lbl">전체 회원</div>
+              <div class="tc-kpi-val">483</div>
+              <div class="tc-kpi-sub">사장님 1 · 손님 481</div>
+              <div class="tc-kpi-trend up">↑ 12 이번 주</div>
+            </div>
+            <div class="tc-kpi-card">
+              <div class="tc-kpi-icon">🏪</div>
+              <div class="tc-kpi-lbl">API 연동 식당</div>
+              <div class="tc-kpi-val">523,695</div>
+              <div class="tc-kpi-sub">연동 1 · SNS 0</div>
+            </div>
+            <div class="tc-kpi-card alert">
+              <div class="tc-kpi-icon">📋</div>
+              <div class="tc-kpi-lbl">매장 등록 신청 대기</div>
+              <div class="tc-kpi-val red">0</div>
+              <div class="tc-kpi-sub">승인 2 · 거절 0</div>
+            </div>
+            <div class="tc-kpi-card warn">
+              <div class="tc-kpi-icon">🧾</div>
+              <div class="tc-kpi-lbl">영수증 인증 대기</div>
+              <div class="tc-kpi-val amber">5</div>
+              <div class="tc-kpi-sub">완료 472 · 거부 1</div>
+            </div>
+            <div class="tc-kpi-card">
+              <div class="tc-kpi-icon">💬</div>
+              <div class="tc-kpi-lbl">전체 리뷰</div>
+              <div class="tc-kpi-val">219</div>
+              <div class="tc-kpi-sub">최근 7일 12건</div>
+              <div class="tc-kpi-trend up">↑ 12 이번 주</div>
+            </div>
+            <div class="tc-kpi-card warn">
+              <div class="tc-kpi-icon">🔍</div>
+              <div class="tc-kpi-lbl">허위 리뷰 탐지</div>
+              <div class="tc-kpi-val amber">18</div>
+              <div class="tc-kpi-sub">분석 대기 0건</div>
+            </div>
+            <div class="tc-kpi-card alert">
+              <div class="tc-kpi-icon">⚠️</div>
+              <div class="tc-kpi-lbl">위생 경고 식당</div>
+              <div class="tc-kpi-val red">0</div>
+              <div class="tc-kpi-sub">골목장인 6곳</div>
+            </div>
+            <div class="tc-kpi-card">
+              <div class="tc-kpi-icon">📈</div>
+              <div class="tc-kpi-lbl">신규 가입 (7일)</div>
+              <div class="tc-kpi-val">478</div>
+              <div class="tc-kpi-sub">30일 483명</div>
+              <div class="tc-kpi-trend up">↑ 급증</div>
+            </div>
+          </div>
+          <div class="tc-grid">
+            <div class="tc-section">
+              <div class="tc-sec-header">
+                <div class="tc-sec-title">매장 등록 신청 현황</div>
+                <span class="tc-sec-more">전체 보기 →</span>
+              </div>
+              <div class="tc-stats">
+                <span class="tc-stat pending">대기 0</span>
+                <span class="tc-stat ok">승인 2</span>
+                <span class="tc-stat bad">거절 0</span>
+              </div>
+              <table class="tc-table">
+                <thead><tr><th>신청자</th><th>식당명</th><th>신청일</th><th>상태</th></tr></thead>
+                <tbody>
+                  <tr><td>hanjihye</td><td>신목사골칼국수</td><td>05/26</td><td><span class="tc-badge ok">승인</span></td></tr>
+                  <tr><td>dummy_u01</td><td>형제육회</td><td>05/20</td><td><span class="tc-badge pending">대기</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tc-section">
+              <div class="tc-sec-header">
+                <div class="tc-sec-title">영수증 인증</div>
+                <span class="tc-sec-more">전체 보기 →</span>
+              </div>
+              <div class="tc-stats">
+                <span class="tc-stat pending">대기 5</span>
+                <span class="tc-stat ok">승인 472</span>
+                <span class="tc-stat bad">거부 1</span>
+                <span class="tc-stat neutral">전체 478</span>
+              </div>
+              <table class="tc-table">
+                <thead><tr><th>신청자</th><th>식당명</th><th>가격일치율</th><th>상태</th></tr></thead>
+                <tbody>
+                  <tr><td>hanjihye</td><td>형제육회</td><td>—</td><td><span class="tc-badge ok">인증 완료</span></td></tr>
+                  <tr><td>dummy_u263</td><td>신목사골칼국수</td><td>—</td><td><span class="tc-badge ok">인증 완료</span></td></tr>
+                  <tr><td>dummy_u012</td><td>신목사골칼국수</td><td>—</td><td><span class="tc-badge ok">인증 완료</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="select-bar">
+      <div class="select-bar-label"><strong>B안 · 모던 클린</strong> — 흰 배경, 블루 포인트, 상단 탭 내비게이션, 이모지 아이콘, 증감 트렌드 표시</div>
+      <a href="mailto:hanjihye2712@gmail.com?subject=관리자 대시보드 B안 선택" class="select-btn" style="background:#4361ee">이 디자인 선택 →</a>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════
+       CANDIDATE C — 웜 어스
+  ══════════════════════════════════ -->
+  <div class="candidate">
+    <div class="candidate-label">
+      <span class="badge" style="background:#2c1810">C안</span>
+      <div>
+        <h2>웜 어스</h2>
+        <div>
+          <p style="display:inline">따뜻한 베이지 + 브라운 · 기존 정직식당 브랜드 톤과 통일</p>
+          <span class="tag">브랜드 일관성</span>
+          <span class="tag">눈 편한 색감</span>
+        </div>
+      </div>
+    </div>
+    <div class="preview-wrap">
+      <div class="theme-warm">
+        <div class="tw-topbar">
+          <div class="tw-logo">
+            <div class="tw-logo-box">正</div>
+            <div>
+              <div class="tw-logo-name">정직식당</div>
+              <div class="tw-logo-sub">HONEST RESTAURANT</div>
+            </div>
+          </div>
+          <div class="tw-user">admin님 ☰</div>
+        </div>
+        <div class="tw-announce">2026 · 제3회 정직 가게 발굴 캠페인 — 동네 사장님의 진심을 디지털 자산으로</div>
+        <div class="tw-body">
+          <div class="tw-page-header">
+            <div>
+              <div class="tw-page-title">운영 현황 대시보드</div>
+              <div class="tw-page-sub">실시간 데이터 기준</div>
+            </div>
+            <div class="tw-date">2026.05.29 10:29</div>
+          </div>
+          <div class="tw-kpi">
+            <div class="tw-kpi-card">
+              <div class="tw-kpi-lbl">전체 회원</div>
+              <div class="tw-kpi-val">483</div>
+              <div class="tw-kpi-sub">사장님 1 · 손님 481</div>
+            </div>
+            <div class="tw-kpi-card">
+              <div class="tw-kpi-lbl">API 연동 식당</div>
+              <div class="tw-kpi-val">523,695</div>
+              <div class="tw-kpi-sub">연동 1 · SNS 0</div>
+            </div>
+            <div class="tw-kpi-card alert">
+              <div class="tw-kpi-lbl">매장 등록 신청 대기</div>
+              <div class="tw-kpi-val red">0</div>
+              <div class="tw-kpi-sub">승인 2 · 거절 0</div>
+            </div>
+            <div class="tw-kpi-card warn">
+              <div class="tw-kpi-lbl">영수증 인증 대기</div>
+              <div class="tw-kpi-val amber">5</div>
+              <div class="tw-kpi-sub">완료 472 · 거부 1</div>
+            </div>
+            <div class="tw-kpi-card">
+              <div class="tw-kpi-lbl">전체 리뷰</div>
+              <div class="tw-kpi-val">219</div>
+              <div class="tw-kpi-sub">최근 7일 12건</div>
+            </div>
+            <div class="tw-kpi-card warn">
+              <div class="tw-kpi-lbl">허위 리뷰 탐지</div>
+              <div class="tw-kpi-val amber">18</div>
+              <div class="tw-kpi-sub">분석 대기 0건</div>
+            </div>
+            <div class="tw-kpi-card alert">
+              <div class="tw-kpi-lbl">위생 경고 식당</div>
+              <div class="tw-kpi-val red">0</div>
+              <div class="tw-kpi-sub">골목장인 6곳</div>
+            </div>
+            <div class="tw-kpi-card">
+              <div class="tw-kpi-lbl">신규 가입 (7일)</div>
+              <div class="tw-kpi-val">478</div>
+              <div class="tw-kpi-sub">30일 483명</div>
+            </div>
+          </div>
+          <div class="tw-divider"></div>
+          <div class="tw-grid">
+            <div class="tw-section">
+              <div class="tw-sec-header">
+                <div class="tw-sec-title">매장 등록 신청 현황</div>
+                <span class="tw-sec-more">전체 보기 →</span>
+              </div>
+              <div class="tw-divider-sm"></div>
+              <div class="tw-stats">
+                <span class="tw-stat pending">대기 0</span>
+                <span class="tw-stat ok">승인 2</span>
+                <span class="tw-stat bad">거절 0</span>
+              </div>
+              <table class="tw-table">
+                <thead><tr><th>신청자</th><th>식당명</th><th>신청일</th><th>상태</th></tr></thead>
+                <tbody>
+                  <tr><td>hanjihye</td><td>신목사골칼국수</td><td>05/26</td><td><span class="tw-badge ok">승인</span></td></tr>
+                  <tr><td>dummy_u01</td><td>형제육회</td><td>05/20</td><td><span class="tw-badge pending">대기</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="tw-section">
+              <div class="tw-sec-header">
+                <div class="tw-sec-title">영수증 인증</div>
+                <span class="tw-sec-more">전체 보기 →</span>
+              </div>
+              <div class="tw-divider-sm"></div>
+              <div class="tw-stats">
+                <span class="tw-stat pending">대기 5</span>
+                <span class="tw-stat ok">승인 472</span>
+                <span class="tw-stat bad">거부 1</span>
+                <span class="tw-stat neutral">전체 478</span>
+              </div>
+              <table class="tw-table">
+                <thead><tr><th>신청자</th><th>식당명</th><th>가격일치율</th><th>상태</th></tr></thead>
+                <tbody>
+                  <tr><td>hanjihye</td><td>형제육회</td><td>—</td><td><span class="tw-badge ok">인증 완료</span></td></tr>
+                  <tr><td>dummy_u263</td><td>신목사골칼국수</td><td>—</td><td><span class="tw-badge ok">인증 완료</span></td></tr>
+                  <tr><td>dummy_u012</td><td>신목사골칼국수</td><td>—</td><td><span class="tw-badge ok">인증 완료</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="select-bar">
+      <div class="select-bar-label"><strong>C안 · 웜 어스</strong> — 따뜻한 베이지 계열, 정직식당 기존 브랜드 톤과 동일, 눈 편한 색감</div>
+      <a href="mailto:hanjihye2712@gmail.com?subject=관리자 대시보드 C안 선택" class="select-btn" style="background:#2c1810">이 디자인 선택 →</a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, mark_safe
 
 from ai.admin_utils import DEFAULT_BADGE, badge, status_badge
 from .models import RestaurantAIProfile, ReviewClassificationResult
@@ -22,27 +22,27 @@ def _alley_badges(obj) -> str:
     if not obj.alley_tags:
         return "—"
     badges = [
-        str(badge(*ALLEY_TAG_COLORS.get(tag, DEFAULT_BADGE),
-                  f"{tag} ({obj.alley_tag_scores.get(tag, 0):.0%})"))
+        badge(*ALLEY_TAG_COLORS.get(tag, DEFAULT_BADGE),
+              f"{tag} ({obj.alley_tag_scores.get(tag, 0):.0%})")
         for tag in obj.alley_tags
     ]
-    return format_html(" ".join(badges))
+    return mark_safe(" ".join(badges))
 
 
 def _dashboard_badges(obj) -> str:
     if not obj.dashboard_tags:
         return "—"
-    return format_html(
-        " ".join(str(badge("#e9ecef", "#495057", tag)) for tag in obj.dashboard_tags)
+    return mark_safe(
+        " ".join(badge("#e9ecef", "#495057", tag) for tag in obj.dashboard_tags)
     )
 
 
 def _ai_keyword_badges(obj) -> str:
     parts = (
-        [str(badge("#d4edda", "#155724", f"↑{kw}")) for kw in obj.ai_positive_keywords]
-        + [str(badge("#f8d7da", "#721c24", f"↓{kw}")) for kw in obj.ai_negative_keywords]
+        [badge("#d4edda", "#155724", f"↑{kw}") for kw in obj.ai_positive_keywords]
+        + [badge("#f8d7da", "#721c24", f"↓{kw}") for kw in obj.ai_negative_keywords]
     )
-    return format_html(" ".join(parts)) if parts else "—"
+    return mark_safe(" ".join(parts)) if parts else "—"
 
 
 # ── 인라인 ────────────────────────────────────────────────────────────────────

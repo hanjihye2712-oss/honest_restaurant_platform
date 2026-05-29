@@ -10,8 +10,10 @@ interactions.views
 """
 
 import json
+import logging
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic import ListView
@@ -227,6 +229,26 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         restaurant_id = request.data.get("restaurant")
+
+        # 자기 가게에는 리뷰 작성 불가
+        owned = getattr(request.user, "owned_restaurant", None)
+        if owned is not None and str(owned.pk) == str(restaurant_id):
+            return Response(
+                {"detail": "내 가게에는 리뷰를 작성할 수 없습니다."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # 영수증 인증(approved 또는 pending) 없으면 리뷰 작성 불가
+        if not ReceiptVerification.objects.filter(
+            restaurant_id=restaurant_id,
+            user=request.user,
+            status__in=[ReceiptVerification.STATUS_APPROVED, ReceiptVerification.STATUS_PENDING],
+        ).exists():
+            return Response(
+                {"detail": "영수증 인증 완료 후 리뷰를 작성할 수 있습니다."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         if Review.objects.filter(
             user=request.user, restaurant_id=restaurant_id
         ).exists():
@@ -241,24 +263,40 @@ class ReviewViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         if instance.user != request.user:
             raise PermissionDenied("권한이 없습니다.")
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        # 이미지 필드에 빈 문자열이 전송된 경우 → 삭제 대상으로 분류
+        img_fields = ('image', 'image_2', 'image_3')
+        clear_fields = [
+            f for f in img_fields
+            if f not in request.FILES and request.data.get(f) == ''
+        ]
+
+        # 빈 문자열 이미지 필드는 serializer에서 제외(유효성 오류 방지)
+        data = {k: v for k, v in request.data.items() if k not in clear_fields}
+        data.update({k: v for k, v in request.FILES.items()})
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
+        # 명시적으로 삭제 요청된 이미지 필드를 None으로 초기화
+        if clear_fields:
+            for field in clear_fields:
+                img = getattr(instance, field)
+                if img:
+                    img.delete(save=False)
+                setattr(instance, field, None)
+            instance.save(update_fields=clear_fields)
+
         if "content" in serializer.validated_data:
             SentimentResult.reset_for_review(instance.id)
-            FakeReviewResult.objects.filter(review=instance).update(
-                status=FakeReviewResult.STATUS_PENDING,
-                is_fake=None, confidence=None,
-                translated_text="", penalty_score=0,
-                analyzed_at=None, error_msg="",
-            )
+            FakeReviewResult.reset_for_review(instance.id)
             ReviewClassificationResult.reset_for_review(instance.id)
             tasks_sentiment.analyze_sentiment.delay(instance.id, instance.content)
             tasks_fake.check_fake_review.delay(instance.id, instance.content)
             tasks_classifier.classify_review.delay(instance.id, instance.content)
 
-        return Response(serializer.data)
+        return Response(self.get_serializer(instance).data)
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
@@ -296,8 +334,18 @@ class ReviewDeleteView(View):
                 {"detail": f"지원하지 않는 action입니다: {action_type}"}, status=400
             )
 
-        Review.objects.filter(id=review_id, user=request.user).delete()
-        Rating.objects.filter(restaurant_id=pk, user=request.user).delete()
-        ReceiptVerification.objects.filter(restaurant_id=pk, user=request.user).delete()
+        try:
+            review_id = int(review_id)
+        except (TypeError, ValueError):
+            return JsonResponse({"detail": "유효하지 않은 review_id입니다."}, status=400)
+
+        try:
+            with transaction.atomic():
+                Review.objects.filter(id=review_id, user=request.user).delete()
+                Rating.objects.filter(restaurant_id=pk, user=request.user).delete()
+                ReceiptVerification.objects.filter(restaurant_id=pk, user=request.user).delete()
+        except Exception as exc:
+            logging.getLogger(__name__).error("리뷰 삭제 실패 review_id=%s: %s", review_id, exc)
+            return JsonResponse({"detail": "삭제 처리 중 오류가 발생했습니다."}, status=500)
 
         return JsonResponse({"success": True})

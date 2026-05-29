@@ -59,21 +59,19 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!logoutBtn) return;
 
   logoutBtn.addEventListener('click', function () {
-    if (!confirm('로그아웃 하시겠습니까?')) return;
-
-    axios.post('/accounts/api/ajax-logout/', {}, {
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCsrf(),
-      }
-    })
-      .then(function () {
-        window.location.href = '/';
-        location.reload(true);
+    showConfirm('로그아웃 하시겠습니까?', function () {
+      axios.post('/accounts/api/ajax-logout/', {}, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrf(),
+        }
       })
-      .catch(function () {
-        window.location.href = '/';
-        location.reload(true);
-      });
+        .then(function () {
+          window.location.replace('/');
+        })
+        .catch(function () {
+          window.location.replace('/');
+        });
+    });
   });
 });

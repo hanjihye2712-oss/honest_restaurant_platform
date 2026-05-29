@@ -45,6 +45,11 @@ FOOD_SAFETY_API_KEY      = os.getenv('FOOD_SAFETY_API_KEY',      '')
 ANSIM_RESTAURANT_API_KEY = os.getenv('ANSIM_RESTAURANT_API_KEY', '')
 KAKAO_MAP_API_KEY        = os.getenv('KAKAO_MAP_API_KEY',        '')
 KAKAO_REST_API_KEY       = os.getenv('KAKAO_REST_API_KEY',       '')
+KAKAO_CLIENT_SECRET      = os.getenv('KAKAO_CLIENT_SECRET',      '')
+KAKAO_REDIRECT_URI       = os.getenv('KAKAO_REDIRECT_URI',       '')
+NAVER_CLIENT_ID          = os.getenv('NAVER_CLIENT_ID',          '')
+NAVER_CLIENT_SECRET      = os.getenv('NAVER_CLIENT_SECRET',      '')
+NAVER_REDIRECT_URI       = os.getenv('NAVER_REDIRECT_URI',       '')
 TOSS_CLIENT_KEY          = os.getenv('TOSS_CLIENT_KEY',          '')
 TOSS_SECRET_KEY          = os.getenv('TOSS_SECRET_KEY',          '')
 
@@ -57,9 +62,20 @@ FASTAPI_FAKE_REVIEW_TIMEOUT= int(os.getenv('FASTAPI_FAKE_REVIEW_TIMEOUT', '30'))
 FASTAPI_REVIEW_CLASSIFIER_URL     = os.getenv('FASTAPI_REVIEW_CLASSIFIER_URL',     'http://localhost:8001/review-classifier/analyze')
 FASTAPI_REVIEW_CLASSIFIER_TIMEOUT = int(os.getenv('FASTAPI_REVIEW_CLASSIFIER_TIMEOUT', '30'))
 
+# ── Gemini API ────────────────────────────────────────────────────
+GEMINI_API_KEY   = os.getenv('GEMINI_API_KEY', '')
+GEMINI_MODEL     = os.getenv('GEMINI_MODEL',   'gemini-3.5-flash')
+
 # ── AI 분석 임계값 ────────────────────────────────────────────────
 FAKE_REVIEW_PENALTY_THRESHOLD = float(os.getenv('FAKE_REVIEW_PENALTY_THRESHOLD', '0.85'))
 HYGIENE_ALERT_THRESHOLD       = float(os.getenv('HYGIENE_ALERT_THRESHOLD',       '0.30'))
+
+# ── 파일 업로드 제한 (MB) ─────────────────────────────────────────
+MAX_UPLOAD_SIZE_IMAGE_MB = int(os.getenv('MAX_UPLOAD_SIZE_IMAGE_MB', '10'))
+MAX_UPLOAD_SIZE_VIDEO_MB = int(os.getenv('MAX_UPLOAD_SIZE_VIDEO_MB', '100'))
+
+# ── 매출 집계 제외 품목 (주류/음료) ──────────────────────────────
+SALES_DRINK_NAMES = set(os.getenv('SALES_DRINK_NAMES', '소주,맥주,콜라,사이다').split(','))
 
 # 외부 SDK(카카오맵 등) 로드 시 Referer 헤더 전달을 위해 변경
 # same-origin(기본값)은 크로스오리진 요청에 Referer를 보내지 않아 Kakao 403 발생
@@ -75,6 +91,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'django.contrib.sites',       # 추가
     'rest_framework',
     'rest_framework_simplejwt',
@@ -91,8 +108,12 @@ INSTALLED_APPS = [
     'ai.ai_sentiment',
     'ai.ai_fake_review',
     'ai.ai_review_classifier',
+    'ai.ai_report',
+    'ai.ai_ocr',
     'marketing',
     'sales',
+    'management',
+    'community',
 ]
 
 MIDDLEWARE = [
@@ -108,15 +129,19 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'mysite.urls'
 
+_TEMPLATE_LOADERS = [
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': False,
         'OPTIONS': {
-            'loaders': [
-                'django.template.loaders.filesystem.Loader',
-                'django.template.loaders.app_directories.Loader',
+            'loaders': _TEMPLATE_LOADERS if DEBUG else [
+                ('django.template.loaders.cached.Loader', _TEMPLATE_LOADERS),
             ],
             'context_processors': [
                 'django.template.context_processors.request',
@@ -157,6 +182,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'accounts.validators.SpecialCharValidator',
     },
 ]
 
@@ -257,6 +285,7 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 
+LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
@@ -268,6 +297,14 @@ SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
+# ── 캐시 (Redis) ─────────────────────────────────────────────────────────
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.getenv('REDIS_URL', 'redis://localhost:6379/1'),
+    }
+}
+
 # ── Celery ────────────────────────────────────────────────────────────────
 CELERY_BROKER_URL        = os.getenv('CELERY_BROKER_URL',    'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND    = os.getenv('CELERY_RESULT_BACKEND','redis://localhost:6379/0')
@@ -275,3 +312,17 @@ CELERY_ACCEPT_CONTENT    = ['json']
 CELERY_TASK_SERIALIZER   = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE          = 'Asia/Seoul'
+
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'weekly-ai-report': {
+        'task': 'ai.ai_report.tasks.generate_all_reports',
+        'schedule': crontab(hour=6, minute=0, day_of_week=1),  # 매주 월요일 06:00 KST
+    },
+    'warm-index-cache': {
+        # _INDEX_CACHE_TTL(1시간)보다 짧은 50분 주기로 실행 → cold-start 완전 제거
+        # 주기를 바꿀 경우 views._INDEX_CACHE_TTL보다 반드시 짧게 유지할 것
+        'task': 'honest_restaurant.tasks.warm_index_cache',
+        'schedule': 60 * 50,  # 50분 (초 단위)
+    },
+}

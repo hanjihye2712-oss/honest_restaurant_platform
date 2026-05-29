@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}내 리뷰 | 정직식당{% endblock %}
 
@@ -16,7 +16,7 @@
   </div>
 
   {% if reviews %}
-    <div class="review-count">총 <strong>{{ paginator.count }}</strong>개</div>
+    <div class="review-count">총 <strong>{{ paginator.count|intcomma }}</strong>개</div>
     <div class="review-list">
       {% for rv in reviews %}
       <a href="{% url 'public_restaurants:restaurant-detail-page' rv.restaurant.pk %}"

@@ -6,8 +6,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from interactions.urls import api_urlpatterns, page_urlpatterns
+from mysite.admin_views import DesignPreviewView
 
 urlpatterns = [
+    path('management/', include('management.urls', namespace='management')),
+    path('community/',  include('community.urls',  namespace='community')),
+    path('management/design-preview/', DesignPreviewView.as_view(), name='design_preview'),
     path('admin/', admin.site.urls),
     path('', include('honest_restaurant.urls')),
     path("accounts/", include("accounts.urls")),
@@ -17,6 +21,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('sales/', include('sales.urls')),
     path("api/ai/", include("ai.ai_review_classifier.urls")),
+    path("api/ai/", include("ai.ai_report.urls")),
 
     # 브라우저가 자동으로 요청하는 favicon.ico — 204로 응답해 404 제거
     path("favicon.ico", lambda request: HttpResponse(status=204)),

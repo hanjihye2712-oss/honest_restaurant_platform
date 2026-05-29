@@ -280,6 +280,10 @@
 
 .review-form-actions {
   margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .review-delete-form {
@@ -311,4 +315,77 @@
   font-size: 14px;
   color: var(--muted);
   border: 2px dashed var(--tan);
+}
+
+
+/* ── 리뷰 이미지 업로드 ──────────────────────────────────────── */
+
+.review-image-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border: 1px dashed rgba(26,39,68,.35);
+  color: var(--navy); font-size: 13px; font-family: var(--ff-body);
+  cursor: pointer; transition: background .15s, border-color .15s;
+  background: transparent; flex-shrink: 0;
+}
+.review-image-label:hover { background: rgba(26,39,68,.05); border-color: var(--navy); }
+.review-image-hint { font-size: 11px; color: var(--muted); }
+
+/* 미리보기 스트립 (이미지들을 가로로 나열) */
+.review-image-previews {
+  display: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+
+.review-preview-item {
+  position: relative;
+  width: 120px; height: 90px; flex-shrink: 0;
+}
+.review-preview-item img {
+  width: 100%; height: 100%; object-fit: cover;
+  border: 1px solid var(--tan); display: block;
+}
+.review-preview-item .review-image-remove {
+  position: absolute; top: 4px; right: 4px;
+}
+
+.review-image-remove {
+  background: rgba(0,0,0,.55); color: #fff; border: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  font-size: 11px; cursor: pointer; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.review-image-remove:hover { background: var(--red); }
+
+/* 리뷰 카드 이미지 */
+.review-img-wrap {
+  margin-top: 10px;
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.review-img {
+  width: 160px; height: 120px; object-fit: cover;
+  border: 1px solid var(--tan); display: block; cursor: pointer;
+}
+.review-img:hover { opacity: .88; }
+
+/* 수정 폼 기존 이미지들 */
+.review-edit-current-imgs {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin-bottom: 8px; padding: 6px 0;
+}
+.review-edit-cur-img-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.review-img-thumb {
+  width: 90px; height: 68px; object-fit: cover; border: 1px solid var(--tan);
+}
+.review-img-delete-label {
+  font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; cursor: pointer;
+}
+
+/* 수정 폼 저장/취소 버튼 그룹 */
+.review-edit-actions-right {
+  display: flex; gap: 8px; align-items: center;
 }

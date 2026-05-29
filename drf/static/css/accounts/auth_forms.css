@@ -1,0 +1,19 @@
+.field-rules { list-style:none; padding:0; margin:6px 0 0; }
+.field-rules li {
+  font-size:12px; color:var(--muted); padding:2px 0;
+  display:flex; align-items:center; gap:5px;
+}
+.field-rules li::before { content:'○'; font-size:10px; color:var(--muted); flex-shrink:0; }
+.field-rules li.pass { color:#1a7a3e; }
+.field-rules li.pass::before { content:'●'; color:#1a7a3e; }
+.field-rules li.fail { color:var(--red); }
+.field-rules li.fail::before { content:'●'; color:var(--red); }
+
+.field-wrap { position: relative; display: block; }
+
+.btn-eye {
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; padding:0;
+  color:var(--muted); display:flex; align-items:center;
+}
+.btn-eye:hover { color:var(--navy); }

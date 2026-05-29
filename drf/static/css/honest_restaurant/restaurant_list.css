@@ -280,6 +280,15 @@
   color: #111;
 }
 
+.trust-emojis {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
 .badges {
   display: flex;
   flex-wrap: wrap;

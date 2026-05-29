@@ -1,100 +1,480 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}사장님 대시보드 | 정직식당{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/honest_restaurant/restaurant_detail.css' %}">
 <link rel="stylesheet" href="{% static 'css/honest_restaurant/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/marketing/marketing.css' %}">
 <link rel="stylesheet" href="{% static 'css/sales/sales.css' %}">
 {% endblock %}
 
 {% block content %}
+
+{# ── 사이드 네비게이션 ── #}
+<nav class="db-sidenav" id="db-sidenav">
+  <div class="db-snav-item" data-target="sec-marketing"><div class="db-snav-dot"></div><span class="db-snav-label">AI 리포트 &amp; 마케팅</span></div>
+  <div class="db-snav-item" data-target="sec-insight"><div class="db-snav-dot"></div><span class="db-snav-label">AI 리뷰 인사이트</span></div>
+  <div class="db-snav-item" data-target="sec-badge"><div class="db-snav-dot"></div><span class="db-snav-label">특수 배지 현황</span></div>
+  <div class="db-snav-item" data-target="sec-score"><div class="db-snav-dot"></div><span class="db-snav-label">신뢰 점수 세부 항목</span></div>
+  <div class="db-snav-item" data-target="sec-sales"><div class="db-snav-dot"></div><span class="db-snav-label">매출 분석</span></div>
+  <div class="db-snav-item" data-target="sec-recent"><div class="db-snav-dot"></div><span class="db-snav-label">최근 현황</span></div>
+</nav>
+
 <div class="owner-poster">
-  <div style="margin-bottom:16px">
-    <div class="owner-title">골목장인 · 사장님 대시보드</div>
-    <p class="owner-sub">김OO 사장님 · 오늘도 23명의 손님이 영수증을 인증했어요</p>
+
+  {# ── 헤더 ── #}
+  <div style="margin-bottom:24px">
+    <div class="owner-title">매장 대시보드</div>
+    {% if restaurant %}
+    <p class="owner-sub">
+      {{ restaurant.name }} ·
+      {{ request.user.get_full_name|default:request.user.username }} 사장님
+      {% if score_data %}
+      — 누적 방문 인증 <strong style="color:var(--navy)">{{ score_data.verified_count|intcomma }}건</strong>
+      {% endif %}
+    </p>
+    {% else %}
+    <p class="owner-sub">{{ request.user.get_full_name|default:request.user.username }} 사장님</p>
+    {% endif %}
   </div>
 
-  <!-- KPI -->
-  <div class="kpi-poster">
-    <div class="kp-box">
-      <div class="kp-lbl">신뢰 단계</div>
-      <div class="kp-val">LV3</div>
-      <div class="kp-sub">신뢰 증명</div>
-      <div class="kp-bar"><div class="kp-fill" style="width:78%"></div></div>
-    </div>
-    <div class="kp-box">
-      <div class="kp-lbl">이번 달 인증</div>
-      <div class="kp-val navy">23건</div>
-      <div class="kp-sub up">↑ +15%</div>
-    </div>
-    <div class="kp-box">
-      <div class="kp-lbl">가격 일치율</div>
-      <div class="kp-val navy">98%</div>
-      <div class="kp-sub">매우 우수</div>
-    </div>
-    <div class="kp-box">
-      <div class="kp-lbl">이번 달 매출</div>
-      <div class="kp-val" style="font-size:24px;color:var(--navy)">412만</div>
-      <div class="kp-sub up">↑ +8.2%</div>
-    </div>
-  </div>
+  {% if restaurant %}
 
-  <!-- 블록 그리드 -->
-  <div class="owner-poster-grid">
-
-    {% include "marketing/partials/marketing_block.html" %}
-
-    <!-- 재고 알림 -->
-    <div class="opg-block">
-      <div class="opg-head">
-        <h3>재고 알림</h3>
-        <span class="opg-tag">PRO</span>
+  {# ════ 0. 신뢰 레벨 통합 바 ════ #}
+  <div id="sec-hero" class="trust-bar">
+    <div class="tb-left">
+      <div class="tb-eyebrow">TRUST LEVEL · 누적 기준</div>
+      <div class="tb-level-row">
+        <span class="tb-lv">LV {{ score_data.level }}</span>
+        <span class="tb-name">{{ score_data.level_name }} {{ score_data.level_icon }}</span>
       </div>
-      <div class="opg-body">
-        <div class="alert-poster">
-          <span style="font-size:20px">🌡️</span>
-          <div class="ap-txt">
-            <strong>금~토 기온 32도</strong>
-            <p>아이스 음료 재료 +30%</p>
+      <div class="tb-badges">
+        {% if ai_profile and ai_profile.is_alley_eligible %}
+        <span class="lc-badge alley">🍀 골목장인 달성</span>
+        {% elif alley_ratio_pct > 0 %}
+        <span class="lc-badge alley">🍀 골목장인 진행 중</span>
+        {% endif %}
+        {% if is_rookie %}<span class="lc-badge rookie">🌱 루키 배지</span>{% endif %}
+        {% if is_trending %}<span class="lc-badge trend">🔥 인기급상승</span>{% endif %}
+      </div>
+    </div>
+    <div class="tb-divider"></div>
+    <div class="tb-right">
+      <div class="tb-right-cta">
+        <div class="lu-icon">🏆</div>
+        <div class="lu-body">
+          {% if score_data.points_to_next %}
+          <div class="lu-title">LV{{ score_data.level|add:"-1" }} 달성 조건 ({{ score_data.points_to_next }}점 더 필요)</div>
+          <div class="lu-list">
+            {% if score_data.verified_count < 200 %}<span>방문 인증</span> 현재 {{ score_data.verified_count|intcomma }}건 → 200건 목표{% if not score_data.price_verified or score_data.ai_score <= 0 %} &nbsp;|&nbsp; {% endif %}{% endif %}{% if not score_data.price_verified %}<span>가격 표본</span> 현재 {{ score_data.receipt_count|intcomma }}건 → 30건 필요{% if score_data.ai_score <= 0 %} &nbsp;|&nbsp; {% endif %}{% endif %}{% if score_data.ai_score <= 0 %}<span>AI 점수</span> 긍정 리뷰 80% 이상이면 보너스 달성{% endif %}{% if score_data.ai_score > 0 and score_data.verified_count >= 200 and score_data.price_verified %}연혁·찜수 자연 증가로 달성 가능합니다{% endif %}
+          </div>
+          {% else %}
+          <div class="lu-title">최고 레벨 달성!</div>
+          <div class="lu-list">정직식당 마스터 신뢰 매장입니다. 이 수준을 유지하세요.</div>
+          {% endif %}
+        </div>
+        <a href="{% url 'public_restaurants:restaurant-detail-page' restaurant.pk %}" class="lu-btn">가게 페이지 보기</a>
+      </div>
+      <div class="tb-bar"><div class="tb-fill" data-w="{{ score_data.progress_pct }}"></div></div>
+    </div>
+  </div>
+
+  {# ════ 1. 경보 배너 ════ #}
+  {% if show_hygiene_alert or show_price_alert or is_trending or trending_pct >= 100 %}
+  <div class="section-label">알림</div>
+  <div class="alert-banner-area">
+
+    {% if show_hygiene_alert %}
+    <div class="alert-banner danger">
+      <span class="alert-icon">🚨</span>
+      <div class="alert-body">
+        <strong>위생 경고 — 최근 14일 부정 언급이 급증했습니다</strong>
+        이 상태가 지속되면 신뢰 레벨이 강등될 위험이 있습니다.
+      </div>
+      <a href="{% url 'public_restaurants:restaurant-detail-page' restaurant.pk %}#review-section" class="alert-cta">리뷰 확인 →</a>
+    </div>
+    {% endif %}
+
+    {% if show_price_alert %}
+    <div class="alert-banner warning">
+      <span class="alert-icon">💰</span>
+      <div class="alert-body">
+        <strong>가격 검증 미완료 — 현재 {{ ai_profile.receipt_ocr_count|intcomma }}건 / 30건 수집</strong>
+        표본 30건이 채워지면 가격 일치율 점수가 반영됩니다.
+      </div>
+      <a href="{% url 'public_restaurants:restaurant-detail-page' restaurant.pk %}" class="alert-cta">영수증 업로드 →</a>
+    </div>
+    {% endif %}
+
+    {% if is_trending %}
+    <div class="alert-banner info">
+      <span class="alert-icon">🔥</span>
+      <div class="alert-body">
+        <strong>인기급상승 배지 달성!</strong>
+        최근 30일 찜 증가율이 {{ trending_pct }}%입니다. 메인 페이지에 자동 노출 중입니다.
+      </div>
+    </div>
+    {% elif trending_pct >= 100 %}
+    <div class="alert-banner info">
+      <span class="alert-icon">📈</span>
+      <div class="alert-body">
+        <strong>인기급상승 배지 달성 임박!</strong>
+        최근 30일 찜 증가율이 {{ trending_pct }}%입니다.
+        {{ trending_needed }}% 더 오르면 메인 페이지 자동 노출됩니다.
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  {# ════ 2. AI 리포트 & 마케팅 ════ #}
+  <div id="sec-marketing" class="section-label">AI 리포트 & 마케팅</div>
+  <div class="hero-grid">
+
+    {# AI 리포트 카드 #}
+    <div class="report-card">
+      <div class="rc-title">AI 주간 리포트</div>
+      {% if ai_report and ai_report.report_text %}
+      <div class="rc-quote">{{ report_text_html }}</div>
+      <div class="rc-meta">분석 기간: {{ ai_report.period_start }} ~ {{ ai_report.period_end }}</div>
+      <a href="/api/ai/reports/history/" class="rc-btn">지난 리포트 전체 보기</a>
+      {% else %}
+      <div class="rc-empty">
+        AI 리포트가 아직 생성되지 않았습니다.<br>
+        리뷰가 쌓이면 매주 자동으로 생성됩니다.
+      </div>
+      {% endif %}
+    </div>
+
+    {# 마케팅 카드 #}
+    <div class="marketing-card">
+      <div class="mc-head">
+        AI 마케팅
+        <div class="section-head-actions">
+          <a href="{% url 'marketing:manage' %}" class="sh-btn">관리</a>
+        </div>
+      </div>
+      <div class="mc-body">
+        {% include "marketing/partials/marketing_block.html" %}
+      </div>
+    </div>
+
+  </div>
+
+  {# ════ 3. AI 리뷰 인사이트 ════ #}
+  <div id="sec-insight" class="section-label">AI 리뷰 인사이트
+    {% if ai_profile and ai_profile.review_count_analyzed %}
+    (최근 {{ ai_profile.review_count_analyzed|intcomma }}건 분석)
+    {% endif %}
+  </div>
+  <div class="insight-grid">
+
+    {# 긍정 태그 #}
+    <div class="insight-card">
+      <div class="insight-title"><span>✅</span> 손님들이 칭찬하는 것</div>
+      {% if pos_tags %}
+      <ul class="tag-list">
+        {% for item in pos_tags %}
+        <li class="tag-item">
+          <span class="tag-pill pos">{{ item.tag }}</span>
+          <div class="tag-bar-wrap"><div class="tag-bar-inner pos" data-w="{{ item.pct }}"></div></div>
+          <span class="tag-count">{{ item.count|intcomma }}건</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p style="font-size:13px;color:var(--muted)">리뷰 분석 데이터가 아직 없습니다.</p>
+      {% endif %}
+    </div>
+
+    {# 부정 태그 #}
+    <div class="insight-card">
+      <div class="insight-title"><span>⚠️</span> 개선이 필요한 것</div>
+      {% if neg_tags %}
+      <ul class="tag-list">
+        {% for item in neg_tags %}
+        <li class="tag-item">
+          <span class="tag-pill neg">{{ item.tag }}</span>
+          <div class="tag-bar-wrap"><div class="tag-bar-inner neg" data-w="{{ item.pct }}"></div></div>
+          <span class="tag-count">{{ item.count|intcomma }}건</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p style="font-size:13px;color:var(--muted)">개선 필요 키워드가 없습니다 👍</p>
+      {% endif %}
+    </div>
+
+    {# 도넛 차트 #}
+    <div class="donut-card">
+      <div class="donut-title">긍정 · 부정 비율</div>
+      <div class="donut-subtitle">AI 점수:
+        {% if score_data.ai_score > 0 %}<strong class="ai-score-positive">+{{ score_data.ai_score }}점</strong>
+        {% elif score_data.ai_score < 0 %}<strong class="ai-score-negative">{{ score_data.ai_score }}점</strong>
+        {% else %}<strong class="ai-score-zero">0점</strong>{% endif %}
+      </div>
+      <div class="donut-wrap">
+        <canvas id="donutChart"></canvas>
+        <div class="donut-center">
+          <div class="donut-pct">{{ positive_pct }}%</div>
+          <div class="donut-lbl">긍정</div>
+        </div>
+      </div>
+      <div class="donut-legend">
+        <div class="dl-item"><span class="dl-dot dl-dot--pos"></span>긍정 리뷰 {{ positive_pct }}%</div>
+        <div class="dl-item"><span class="dl-dot dl-dot--neu"></span>중립 리뷰 {{ neutral_pct }}%</div>
+        <div class="dl-item"><span class="dl-dot dl-dot--neg"></span>부정 리뷰 {{ negative_pct }}%</div>
+      </div>
+      {% if positive_pct >= 80 %}
+      <div class="donut-bonus">긍정 80% 이상 → AI 보너스 달성!</div>
+      {% else %}
+      <div class="donut-bonus donut-bonus--warn">긍정 80% 이상이면 AI 보너스 +6점</div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {# ════ 4. 특수 배지 ════ #}
+  <div id="sec-badge" class="section-label">특수 배지 현황</div>
+  <div class="badge-grid">
+
+    {# 골목장인 배지 #}
+    <div class="badge-card">
+      <div class="badge-header">
+        <span class="badge-emoji">🍀</span>
+        <div>
+          <div class="badge-name">골목장인</div>
+          {% if ai_profile and ai_profile.is_alley_eligible %}
+          <div class="badge-status achieved">달성!</div>
+          {% else %}
+          <div class="badge-status progress">달성 중 ({{ alley_ratio_pct }}%)</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="badge-pct {% if ai_profile and ai_profile.is_alley_eligible %}achieved{% endif %}">
+        {% if ai_profile and ai_profile.is_alley_eligible %}달성!{% else %}{{ alley_ratio_pct }}%{% endif %}
+      </div>
+      <div class="badge-progress-bar">
+        <div class="bpb-fill {% if ai_profile and ai_profile.is_alley_eligible %}achieved{% else %}progress{% endif %}" data-w="{{ alley_ratio_pct }}"></div>
+      </div>
+      <ul class="badge-conditions">
+        <li class="{% if score_data.operating_years >= 3 %}done{% else %}pending{% endif %}">
+          영업 3년 이상 (현재 {{ score_data.operating_years }}년)
+        </li>
+        <li class="{% if score_data.price_rate_pct >= 100 %}done{% else %}pending{% endif %}">
+          가격 일치율 100%
+        </li>
+        <li class="{% if ai_profile and ai_profile.alley_review_ratio >= 0.70 %}done{% else %}pending{% endif %}">
+          현지인 추천 키워드 {{ alley_ratio_pct }}% (목표 70%)
+        </li>
+      </ul>
+    </div>
+
+    {# 루키 배지 #}
+    <div class="badge-card">
+      <div class="badge-header">
+        <span class="badge-emoji">🌱</span>
+        <div>
+          <div class="badge-name">루키 (신상 가게)</div>
+          {% if is_rookie %}
+          <div class="badge-status achieved">배지 보유 중</div>
+          {% else %}
+          <div class="badge-status locked">만료됨</div>
+          {% endif %}
+        </div>
+      </div>
+      {% if is_rookie %}
+      <div class="badge-pct achieved">달성!</div>
+      <div class="badge-progress-bar">
+        <div class="bpb-fill achieved" style="width:100%"></div>
+      </div>
+      <ul class="badge-conditions">
+        <li class="done">개업 1년 이내 자동 부여</li>
+        <li class="done">레벨과 무관하게 노출</li>
+        <li class="locked">만료까지 {{ rookie_months_left }}개월 남음</li>
+      </ul>
+      {% else %}
+      <div class="badge-pct" style="color:var(--muted)">미보유</div>
+      <div class="badge-progress-bar">
+        <div class="bpb-fill locked" style="width:100%"></div>
+      </div>
+      <ul class="badge-conditions">
+        <li class="locked">개업 1년 이내 자동 부여 (기간 만료)</li>
+      </ul>
+      {% endif %}
+    </div>
+
+    {# 인기급상승 배지 #}
+    <div class="badge-card">
+      <div class="badge-header">
+        <span class="badge-emoji">🔥</span>
+        <div>
+          <div class="badge-name">인기급상승</div>
+          {% if is_trending %}
+          <div class="badge-status achieved">달성!</div>
+          {% else %}
+          <div class="badge-status progress">달성 중 ({{ trending_pct }}% / 200%)</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="badge-pct {% if is_trending %}achieved{% endif %}">{{ trending_pct }}%</div>
+      <div class="badge-progress-bar">
+        <div class="bpb-fill {% if is_trending %}achieved{% else %}progress{% endif %}" data-w="{{ trending_bar_pct }}"></div>
+      </div>
+      <ul class="badge-conditions">
+        <li class="{% if positive_pct >= 80 %}done{% else %}pending{% endif %}">AI 긍정 리뷰 80% 이상</li>
+        <li class="{% if is_trending %}done{% else %}pending{% endif %}">
+          찜 증가율 200% 이상 → 현재 {{ trending_pct }}%
+          {% if not is_trending %}({{ trending_needed }}% 더 필요){% endif %}
+        </li>
+      </ul>
+      {% if not is_trending %}
+      <div class="badge-info">달성 시 메인 페이지 자동 노출 + 랭킹 부스트</div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {# ════ 5. 점수 브레이크다운 ════ #}
+  <div id="sec-score" class="section-label">신뢰 점수 세부 항목 (총 100점)</div>
+  <div class="score-grid">
+
+    {# 점수 항목 카드 #}
+    <div class="score-card">
+      <div class="score-card-title">
+        획득 점수 내역
+        <span class="sc-total">{{ score_data.total }}<span>점</span></span>
+      </div>
+
+      {# 정부 인증 #}
+      <div class="score-item">
+        <div class="score-row">
+          <span class="score-name"><span class="si-icon">🏛️</span> 정부 인증</span>
+          <span class="score-pts">{{ score_data.govt_score }} <span>/ 25점</span></span>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-fill {% if score_data.govt_score == 25 %}full{% else %}partial{% endif %}" data-w="{{ score_data.govt_pct }}"></div>
+        </div>
+      </div>
+
+      {# 가격일치율 #}
+      <div class="score-item">
+        <div class="score-row">
+          <span class="score-name"><span class="si-icon">💰</span> 가격 일치율</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            {% if score_data.price_verified %}
+            <span class="score-tag ok">{{ score_data.price_rate_pct }}%</span>
+            {% else %}
+            <span class="score-tag pending">검증중</span>
+            {% endif %}
+            <span class="score-pts">{{ score_data.price_score }} <span>/ 20점</span></span>
           </div>
         </div>
-        <div class="alert-poster">
-          <span style="font-size:20px">🎓</span>
-          <div class="ap-txt">
-            <strong>수요일 대학 축제</strong>
-            <p>테이크아웃 컵 50개</p>
-          </div>
+        <div class="score-bar">
+          <div class="score-bar-fill {% if score_data.price_verified %}partial{% else %}warn{% endif %}" data-w="{{ score_data.price_pct }}"></div>
         </div>
       </div>
-    </div>
 
-    <!-- 최근 영수증 -->
-    <div class="opg-block">
-      <div class="opg-head"><h3>최근 영수증</h3></div>
-      <div class="opg-body">
-        <ul class="rec-poster">
-          <li><span>김밥 2개 + 라면 1개</span><span style="color:var(--muted);font-size:11px">3시간 전</span></li>
-          <li><span>참치김밥 1개</span><span style="color:var(--muted);font-size:11px">5시간 전</span></li>
-          <li><span>떡볶이 1개</span><span style="color:var(--muted);font-size:11px">어제</span></li>
-        </ul>
+      {# 연혁 #}
+      <div class="score-item">
+        <div class="score-row">
+          <span class="score-name"><span class="si-icon">📅</span> 연혁 ({{ score_data.operating_years }}년)</span>
+          <span class="score-pts">{{ score_data.history_score }} <span>/ 20점</span></span>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-fill partial" data-w="{{ score_data.history_pct }}"></div>
+        </div>
       </div>
-    </div>
 
-    <!-- 가게 스토리 -->
-    <div class="opg-block">
-      <div class="opg-head"><h3>가게 스토리</h3></div>
-      <div class="opg-body">
-        <p class="arc-text">인터뷰 녹음만 하면 AI가 인스타·블로그·유튜브 자막까지 자동 생성합니다.</p>
-        <div class="arc-badge">노포 아카이브 참여 중</div>
+      {# 방문자 인증 #}
+      <div class="score-item">
+        <div class="score-row">
+          <span class="score-name"><span class="si-icon">🧾</span> 방문자 인증 ({{ score_data.verified_count|intcomma }}건)</span>
+          <span class="score-pts">{{ score_data.visit_score }} <span>/ 15점</span></span>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-fill partial" data-w="{{ score_data.visit_pct }}"></div>
+        </div>
       </div>
+
+      {# 찜수 #}
+      <div class="score-item">
+        <div class="score-row">
+          <span class="score-name">
+            <span class="si-icon">🔖</span> 찜수
+            {% if score_data.like_pct_rank %}<small style="color:var(--muted)">(상위 {{ score_data.like_pct_rank }}%)</small>{% endif %}
+          </span>
+          <span class="score-pts">{{ score_data.like_score }} <span>/ 10점</span></span>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-fill partial" data-w="{{ score_data.like_pct }}"></div>
+        </div>
+      </div>
+
+      {# AI 점수 #}
+      <div class="score-item">
+        <div class="score-row">
+          <span class="score-name"><span class="si-icon">🤖</span> AI 점수</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            {% if score_data.ai_score > 0 %}
+            <span class="score-tag ok">+{{ score_data.ai_score }}점 보너스</span>
+            {% elif score_data.ai_score < 0 %}
+            <span class="score-tag danger">{{ score_data.ai_score }}점</span>
+            {% else %}
+            <span class="score-tag pending">0점</span>
+            {% endif %}
+            <span class="score-pts">{{ score_data.ai_score }} <span>/ 10점</span></span>
+          </div>
+        </div>
+        <div class="score-bar">
+          <div class="score-bar-fill {% if score_data.ai_score > 0 %}full{% elif score_data.ai_score < 0 %}low{% else %}warn{% endif %}" data-w="{{ score_data.ai_pct }}"></div>
+        </div>
+      </div>
+
     </div>
 
-    {% include "sales/dashboard_chart.html" %}
+    {# 레이더 차트 카드 #}
+    <div class="score-card" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-start;">
+      <div class="score-card-title" style="width:100%">항목별 달성도</div>
+      <canvas id="radarChart" style="max-width:260px;max-height:260px"></canvas>
+    </div>
 
   </div>
+
+  {# ════ 6. 매출 분석 ════ #}
+  <div id="sec-sales" class="section-head">
+    매출 분석
+  </div>
+  {% include "sales/dashboard_chart.html" %}
+
+  {# ════ 7. 하단: 최근 현황 ════ #}
+  <div id="sec-recent" class="section-label">최근 현황</div>
+  <div class="bottom-grid">
+
+    {# 월별 저장수 추이 #}
+    <div class="bottom-card">
+      <div class="bc-title">월별 저장수 추이</div>
+      <canvas id="bmLineChart" height="180"></canvas>
+    </div>
+
+    {# 월별 영수증 인증 추이 #}
+    <div class="bottom-card">
+      <div class="bc-title">월별 영수증 인증 추이</div>
+      <canvas id="lineChart" height="180"></canvas>
+    </div>
+
+  </div>
+
+  {% else %}
+  {# 연결된 가게 없음 #}
+  <div style="text-align:center;padding:60px 20px;background:var(--cream);border:1px solid var(--tan)">
+    <p style="font-size:16px;color:var(--muted);margin-bottom:16px">연결된 가게가 없습니다.</p>
+    <a href="{% url 'public_restaurants:register-restaurant' %}" style="background:var(--navy);color:var(--cream);padding:12px 24px;text-decoration:none;font-family:var(--ff-deco)">가게 등록하기 →</a>
+  </div>
+  {% endif %}
+
 </div>
 
 {% include "marketing/partials/marketing_modal.html" %}
@@ -103,13 +483,19 @@
 {% block extra_js %}
 <div id="index-meta" style="display:none;"
      data-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
-     data-login-url="{% url 'login' %}"></div>
+     data-login-url="{% url 'login' %}"
+     data-restaurant-id="{{ restaurant.pk|default:'' }}"></div>
+<div id="db-chart-data" style="display:none;"
+     data-radar="{{ radar_data|default:'[]' }}"
+     data-pos="{{ positive_pct|default:0 }}"
+     data-neu="{{ neutral_pct|default:0 }}"
+     data-neg="{{ negative_pct|default:0 }}"
+     data-trend-labels="{{ trend_labels|default:'[]' }}"
+     data-trend-data="{{ trend_data|default:'[]' }}"
+     data-bm-trend-labels="{{ bm_trend_labels|default:'[]' }}"
+     data-bm-trend-data="{{ bm_trend_data|default:'[]' }}"></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="{% static 'js/marketing/marketing.js' %}"></script>
 <script src="{% static 'js/sales/dashboard.js' %}"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    if (typeof renderHistory === 'function') renderHistory();
-  });
-</script>
+<script src="{% static 'js/honest_restaurant/dashboard.js' %}"></script>
 {% endblock %}

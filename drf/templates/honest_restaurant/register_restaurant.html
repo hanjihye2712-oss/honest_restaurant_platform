@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}우리 가게 등록 | 정직식당{% endblock %}
+
+{% block content %}
+<div class="reg-wrap">
+
+  <!-- 상단 안내 -->
+  <div class="reg-hero">
+    <h1 class="reg-hero-title">우리 가게 등록하기</h1>
+    <p class="reg-hero-sub">
+      가게를 등록하면 AI 대시보드를 이용할 수 있습니다.<br>
+      영업 중인 가게를 검색해 선택해주세요.
+    </p>
+
+    <!-- 단계 표시 -->
+    <div class="reg-steps">
+      <div class="reg-step done">
+        <div class="rs-circle">✓</div>
+        <div class="rs-label">회원가입</div>
+      </div>
+      <div class="reg-step-line done"></div>
+      <div class="reg-step done">
+        <div class="rs-circle">✓</div>
+        <div class="rs-label">로그인</div>
+      </div>
+      <div class="reg-step-line active"></div>
+      <div class="reg-step active">
+        <div class="rs-circle">3</div>
+        <div class="rs-label">우리 가게 등록</div>
+      </div>
+      <div class="reg-step-line"></div>
+      <div class="reg-step">
+        <div class="rs-circle">4</div>
+        <div class="rs-label">사업자 인증</div>
+      </div>
+      <div class="reg-step-line"></div>
+      <div class="reg-step">
+        <div class="rs-circle">5</div>
+        <div class="rs-label">AI 대시보드 이용</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 검색 폼 -->
+  <div class="reg-search-card">
+    <form method="get" class="reg-search-form">
+      <div class="reg-search-row">
+        <input
+          type="text"
+          name="q"
+          value="{{ query }}"
+          placeholder="가게명 또는 주소를 입력하세요 (예: 홍길동 김밥, 강남구 테헤란로)"
+          class="reg-search-input"
+          autofocus
+        >
+        <button type="submit" class="reg-search-btn">검색</button>
+      </div>
+    </form>
+    <p class="reg-search-hint">
+      이미 다른 사장님이 등록한 가게는 검색 결과에 표시되지 않습니다.
+    </p>
+  </div>
+
+  <!-- 검색 결과 -->
+  {% if query %}
+    {% if results %}
+    <div class="reg-results">
+      <div class="reg-results-count">
+        "<strong>{{ query }}</strong>" 검색 결과 — {{ results|length }}건
+      </div>
+
+      {% for r in results %}
+      <form method="post" class="reg-result-item" id="form-{{ r.pk }}">
+        {% csrf_token %}
+        <input type="hidden" name="restaurant_id" value="{{ r.pk }}">
+
+        <div class="rri-info">
+          <div class="rri-name">{{ r.name }}</div>
+          <div class="rri-meta">
+            {% if r.address_road %}
+              <span>📍 {{ r.address_road }}</span>
+            {% endif %}
+            {% if r.business_type %}
+              <span class="rri-type">{{ r.business_type }}</span>
+            {% endif %}
+            {% if r.operating_years %}
+              <span class="rri-years">영업 {{ r.operating_years }}년</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="button" class="rri-btn"
+                data-name="{{ r.name }}"
+                onclick="var n=this.dataset.name; showConfirm('「'+n+'」을(를) 우리 가게로 등록할까요?\n사업자 인증 후 AI 대시보드를 이용할 수 있습니다.', function(){ document.getElementById('form-{{ r.pk }}').submit(); })">
+          등록하기
+        </button>
+      </form>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="reg-empty">
+      <div class="reg-empty-icon">🔍</div>
+      <p class="reg-empty-title">"{{ query }}"에 해당하는 가게를 찾을 수 없습니다.</p>
+      <p class="reg-empty-sub">
+        가게명이나 주소를 다시 확인해주세요.<br>
+        영업 중인 가게만 검색됩니다.
+      </p>
+    </div>
+    {% endif %}
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/register_restaurant.css' %}">
+{% endblock %}

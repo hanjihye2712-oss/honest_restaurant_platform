@@ -1,0 +1,95 @@
+{% extends "community/base.html" %}
+{% load static %}
+
+{% block page_title %}🔍 가격 감시단{% endblock %}
+{% block page_sub %}메뉴판 가격과 실제 청구 금액이 다르면 신고해주세요{% endblock %}
+
+{% block comm_content %}
+
+<div class="comm-grid-2" style="align-items:start;">
+
+  <!-- ── 신고 폼 ── -->
+  <div>
+    <div class="comm-section-title">📝 가격 불일치 신고</div>
+    <div class="comm-card">
+      <div class="comm-form-group">
+        <label class="comm-label">식당명</label>
+        <input class="comm-input" type="text" placeholder="식당 이름을 입력하세요">
+      </div>
+      <div class="comm-form-group">
+        <label class="comm-label">메뉴명</label>
+        <input class="comm-input" type="text" placeholder="해당 메뉴명">
+      </div>
+      <div class="comm-grid-2" style="gap:12px;">
+        <div class="comm-form-group">
+          <label class="comm-label">메뉴판 가격</label>
+          <input class="comm-input" type="number" placeholder="8,000">
+        </div>
+        <div class="comm-form-group">
+          <label class="comm-label">실제 청구 금액</label>
+          <input class="comm-input" type="number" placeholder="9,000">
+        </div>
+      </div>
+      <div class="comm-form-group">
+        <label class="comm-label">영수증 사진</label>
+        <input class="comm-input" type="file" accept="image/*">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">영수증 사진이 있으면 신고가 더 빠르게 처리됩니다.</div>
+      </div>
+      <div class="comm-form-group">
+        <label class="comm-label">추가 설명 (선택)</label>
+        <textarea class="comm-textarea" placeholder="상황을 자세히 설명해주세요."></textarea>
+      </div>
+      <button class="comm-btn full">신고 제출하기</button>
+    </div>
+
+    <!-- 안내 박스 -->
+    <div style="background:#fffdf0;border:1px solid #c8a96e;border-radius:8px;padding:16px;margin-top:16px;">
+      <div style="font-size:12px;font-weight:700;color:#8a6a2a;margin-bottom:8px;">⚠️ 유의사항</div>
+      <ul style="font-size:12px;color:var(--muted);padding-left:16px;margin:0;line-height:2;">
+        <li>허위 신고 시 계정 제재가 될 수 있습니다.</li>
+        <li>관리자 검토 후 결과가 안내됩니다. (1~3 영업일)</li>
+        <li>확인된 신고는 식당 신뢰 점수에 반영됩니다.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── 내 신고 현황 ── -->
+  <div>
+    <div class="comm-section-title">📋 내 신고 현황</div>
+    <div class="comm-card">
+      {% for r in my_reports %}
+      <div style="padding:14px 0;border-bottom:1px solid var(--tan);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div style="font-weight:700;font-size:14px;color:var(--navy);">{{ r.restaurant }}</div>
+          <span class="status-badge {{ r.status }}">
+            {% if r.status == 'confirmed' %}확인 완료
+            {% elif r.status == 'reviewing' %}검토 중
+            {% else %}반려{% endif %}
+          </span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);">
+          {{ r.menu }} ·
+          메뉴판 {{ r.menu_price|floatformat:0 }}원 →
+          실제 {{ r.reported_price|floatformat:0 }}원
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">{{ r.date }}</div>
+      </div>
+      {% empty %}
+      <div class="comm-empty">
+        <div class="comm-empty-icon">📋</div>
+        신고 내역이 없습니다.
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 기여 포인트 -->
+    <div class="comm-card" style="margin-top:14px;text-align:center;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">가격 감시단 기여 포인트</div>
+      <div style="font-family:var(--ff-poster);font-size:36px;color:#c8a96e;">120 P</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">확인된 신고 1건 = 50P 적립</div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

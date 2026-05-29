@@ -1,0 +1,63 @@
+/* ─── 기본 레이아웃 ─── */
+.dash-kpi       { display:grid; grid-template-columns:repeat(3,1fr) 1fr; gap:16px; margin-bottom:24px; }
+.kpi-card       { background:#f5f0e8; border:2px solid #1a2744; padding:20px 24px; border-radius:4px; }
+.kpi-label      { font-size:11px; font-weight:700; letter-spacing:.1em; color:#888; margin-bottom:6px; }
+.kpi-val        { font-size:28px; font-weight:900; color:#1a2744; }
+.kpi-sub        { font-size:11px; color:#888; margin-top:4px; }
+
+/* ─── 이상 감지 카드 ─── */
+.anomaly-card   { border:2px solid #1a2744; padding:20px 24px; border-radius:4px; background:#fff; }
+.anomaly-card .kpi-label { color:#888; }
+.anomaly-rev    { font-size:16px; font-weight:700; color:#1a2744; margin-top:4px; }
+.change-badge   { display:inline-block; margin-top:6px; padding:3px 10px;
+                  border-radius:12px; font-size:13px; font-weight:700; }
+.change-up      { background:#e8f8f0; color:#27ae60; }
+.change-down    { background:#fdecea; color:#e74c3c; }
+.change-warn    { border:2px solid #e74c3c; }
+.anomaly-prev   { font-size:11px; color:#888; margin-top:6px; }
+
+/* ─── 섹션 공통 ─── */
+.dash-section   { background:#fff; border:1px solid #ddd; padding:20px 24px;
+                  margin-bottom:24px; border-radius:4px; }
+.dash-section h2{ font-size:14px; font-weight:700; color:#1a2744; margin:0 0 16px;
+                  padding-bottom:10px; border-bottom:2px solid #1a2744; }
+.dash-grid      { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px; }
+
+/* ─── 마케팅 테이블 ─── */
+.mkt-table      { width:100%; border-collapse:collapse; font-size:13px; }
+.mkt-table th   { background:#1a2744; color:#fff; padding:8px 12px; text-align:left; font-weight:600; }
+.mkt-table td   { padding:8px 12px; border-bottom:1px solid #eee; }
+.mkt-table tr:hover td { background:#f9f7f3; }
+.mkt-change-up  { color:#27ae60; font-weight:700; }
+.mkt-change-down{ color:#e74c3c; font-weight:700; }
+
+/* ─── 메뉴 인사이트 ─── */
+.insight-grid   { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.menu-chip      { display:inline-block; background:#f5f0e8; border:1px solid #1a2744;
+                  color:#1a2744; border-radius:20px; padding:4px 12px; margin:3px 2px;
+                  font-size:12px; font-weight:600; }
+.menu-chip-low  { background:#fdecea; border:1px solid #e74c3c; color:#c0392b; }
+.insight-sub    { font-size:11px; color:#888; margin-top:4px; }
+.badge-core     { display:inline-block; background:#1a2744; color:#fff; border-radius:3px;
+                  font-size:10px; padding:1px 6px; margin-right:4px; vertical-align:middle; }
+.badge-low      { display:inline-block; background:#e74c3c; color:#fff; border-radius:3px;
+                  font-size:10px; padding:1px 6px; margin-right:4px; vertical-align:middle; }
+
+/* ─── 상담 기록 테이블 ─── */
+.consult-table  { width:100%; border-collapse:collapse; font-size:13px; }
+.consult-table th { background:#1a2744; color:#fff; padding:8px 12px; text-align:left; font-weight:600; }
+.consult-table td { padding:8px 12px; border-bottom:1px solid #eee; vertical-align:top; }
+.consult-table tr:hover td { background:#f9f7f3; }
+.cat-badge      { display:inline-block; background:#f5f0e8; border:1px solid #1a2744;
+                  color:#1a2744; border-radius:3px; padding:1px 7px; font-size:11px; }
+.consult-add-link { display:inline-block; margin-top:12px; padding:7px 16px;
+                    background:#1a2744; color:#fff; border-radius:3px; font-size:13px;
+                    text-decoration:none; font-weight:600; }
+.consult-add-link:hover { background:#c0392b; color:#fff; }
+
+/* ─── 반응형 ─── */
+@media (max-width:900px) {
+  .dash-kpi     { grid-template-columns:1fr 1fr; }
+  .dash-grid    { grid-template-columns:1fr; }
+  .insight-grid { grid-template-columns:1fr; }
+}

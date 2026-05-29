@@ -10,10 +10,6 @@
 
 {% block content %}
 
-<div class="detail-back">
-  <a href="{% url 'public_restaurants:restaurant-detail-page' restaurant.pk %}">← 상세 페이지로</a>
-</div>
-
 <div class="verify-center-wrap"
      data-submit-url="{% url 'public_restaurants:restaurant-verify' restaurant.pk %}">
 

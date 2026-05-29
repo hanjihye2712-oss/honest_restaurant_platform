@@ -75,7 +75,7 @@
 /* ===== 대시보드 차트 블록 ===== */
 .opg-block--full       { grid-column: 1 / -1; }
 .sales-chart-grid      { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.sales-chart-box       { background: #fff; border: 1px solid var(--tan, #e0d9cc); padding: 16px; border-radius: 2px; }
+.sales-chart-box       { background: var(--cream, #F5EDD0); border: 1px solid var(--tan, #e0d9cc); padding: 16px; border-radius: 2px; }
 .sales-chart-title     { font-size: 12px; font-weight: 700; letter-spacing: .05em; color: var(--muted, #888); margin: 0 0 12px; text-transform: uppercase; }
 .chart-drink-link      { font-size: 11px; font-weight: 400; color: var(--navy, #1a2744); text-decoration: underline; margin-left: 8px; letter-spacing: 0; text-transform: none; }
 .chart-drink-link:hover { opacity: 0.7; }

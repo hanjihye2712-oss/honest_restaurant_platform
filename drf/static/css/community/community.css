@@ -1,0 +1,224 @@
+/*
+ * community/community.css
+ * ========================
+ * 소비자 참여 기능 공통 스타일
+ */
+
+/* ── 레이아웃 ── */
+.comm-wrap   { max-width: 1000px; margin: 0 auto; padding: 36px 40px 80px; }
+.comm-header { margin-bottom: 32px; }
+.comm-title  { font-family: var(--ff-deco); font-size: 26px; color: var(--navy); }
+.comm-sub    { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+/* ── 탑 내비게이션 ── */
+.comm-nav {
+  position: sticky;
+  top: 0;
+  background: var(--paper);
+  z-index: 100;
+  padding-top: 8px;
+  display: flex; gap: 4px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--tan);
+  margin-bottom: 36px; padding-bottom: 0;
+}
+.comm-nav a {
+  padding: 10px 18px; font-size: 13px; font-weight: 600;
+  color: var(--muted); text-decoration: none;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color .15s;
+}
+.comm-nav a:hover  { color: var(--navy); }
+.comm-nav a.active { color: var(--navy); border-bottom-color: var(--navy); }
+
+/* ── 공통 카드 ── */
+.comm-card {
+  background: var(--cream); border: 1px solid var(--tan);
+  border-radius: 10px; padding: 24px;
+}
+.comm-card + .comm-card { margin-top: 16px; }
+
+/* ── 섹션 제목 ── */
+.comm-section-title {
+  font-family: var(--ff-deco); font-size: 16px; color: var(--navy);
+  margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+}
+
+/* ── 그리드 ── */
+.comm-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.comm-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+/* ── 뱃지 카드 ── */
+.badge-card {
+  background: var(--cream); border: 1.5px solid var(--tan);
+  border-radius: 12px; padding: 20px; text-align: center;
+  transition: transform .15s, box-shadow .15s;
+}
+.badge-card:hover          { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,.08); }
+.badge-card.earned         { border-color: #c8a96e; background: #fffdf5; }
+.badge-card.locked         { opacity: .55; filter: grayscale(.4); }
+.badge-icon                { font-size: 36px; margin-bottom: 10px; }
+.badge-name                { font-weight: 800; font-size: 14px; color: var(--navy); margin-bottom: 4px; }
+.badge-desc                { font-size: 11px; color: var(--muted); }
+.badge-date                { font-size: 10px; color: #c8a96e; margin-top: 8px; font-weight: 700; }
+
+/* ── 레벨 바 ── */
+.level-bar-wrap  { background: #e8e0d5; border-radius: 999px; height: 10px; margin: 8px 0; overflow: hidden; }
+.level-bar-fill  { background: var(--navy); height: 100%; border-radius: 999px; transition: width .6s; }
+.level-bar-fill.gold { background: #c8a96e; }
+
+/* ── 진행 바 (챌린지·뱃지) ── */
+.prog-wrap  { background: #e8e0d5; border-radius: 999px; height: 8px; overflow: hidden; }
+.prog-fill  { background: var(--navy); height: 100%; border-radius: 999px; }
+.prog-fill.done { background: #27ae60; }
+
+/* ── 상태 뱃지 ── */
+.status-badge {
+  display: inline-block; font-size: 11px; padding: 3px 10px;
+  border-radius: 999px; font-weight: 700;
+}
+.status-badge.confirmed { background: #d5f5e3; color: #1e8449; }
+.status-badge.reviewing { background: #fdebd0; color: #e67e22; }
+.status-badge.rejected  { background: #fadbd8; color: #c0392b; }
+.status-badge.open      { background: #dbeafe; color: #1d4ed8; }
+.status-badge.almost    { background: #fdebd0; color: #e67e22; }
+.status-badge.certified { background: #c8a96e22; color: #8a6a2a; }
+
+/* ── 테이블 ── */
+.comm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.comm-table th {
+  background: var(--navy); color: var(--cream);
+  padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: .06em;
+}
+.comm-table td {
+  padding: 11px 14px; border-bottom: 1px solid var(--tan); color: var(--ink);
+  vertical-align: middle;
+}
+.comm-table tbody tr:last-child td { border-bottom: none; }
+.comm-table tbody tr:hover td      { background: rgba(0,0,0,.02); }
+.comm-table .muted                 { color: var(--muted); }
+.comm-table .rank-1 td:first-child { color: #c8a96e; font-weight: 900; font-size: 18px; }
+.comm-table .rank-2 td:first-child { color: #888;    font-weight: 800; font-size: 16px; }
+.comm-table .rank-3 td:first-child { color: #a0622a; font-weight: 800; font-size: 16px; }
+.comm-table .my-row td             { background: #fffdf0; font-weight: 700; }
+
+/* ── 폼 ── */
+.comm-form-group { margin-bottom: 20px; }
+.comm-label      { display: block; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 6px; letter-spacing: .04em; }
+.comm-input, .comm-select, .comm-textarea {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid var(--tan); border-radius: 6px;
+  font-size: 13px; background: var(--cream); color: var(--ink);
+  font-family: inherit; box-sizing: border-box;
+}
+.comm-input:focus, .comm-select:focus, .comm-textarea:focus {
+  outline: none; border-color: var(--navy);
+}
+.comm-textarea { resize: vertical; min-height: 100px; }
+
+/* ── 버튼 ── */
+.comm-btn {
+  display: inline-block; padding: 11px 28px;
+  background: var(--navy); color: var(--cream);
+  border: none; border-radius: 6px; font-size: 13px;
+  font-weight: 700; cursor: pointer; font-family: inherit;
+  text-decoration: none; transition: opacity .15s;
+}
+.comm-btn:hover        { opacity: .85; }
+.comm-btn.outline {
+  background: transparent; color: var(--navy);
+  border: 1.5px solid var(--navy);
+}
+.comm-btn.gold { background: #c8a96e; }
+.comm-btn.full { display: block; width: 100%; text-align: center; }
+
+/* ── 멤버십 가격 카드 ── */
+.plan-card {
+  border: 2px solid var(--tan); border-radius: 14px;
+  padding: 32px 28px; text-align: center; position: relative;
+}
+.plan-card.featured      { border-color: var(--navy); }
+.plan-featured-badge {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: var(--navy); color: var(--cream);
+  font-size: 11px; font-weight: 700; padding: 4px 16px; border-radius: 999px;
+  white-space: nowrap;
+}
+.plan-name  { font-size: 14px; font-weight: 700; color: var(--muted); margin-bottom: 10px; letter-spacing: .08em; }
+.plan-price { font-family: var(--ff-poster); font-size: 40px; color: var(--navy); line-height: 1; }
+.plan-unit  { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+.plan-features { list-style: none; text-align: left; margin-bottom: 24px; }
+.plan-features li { font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--tan); color: var(--ink); }
+.plan-features li:last-child { border-bottom: none; }
+.plan-features .check   { color: #27ae60; font-weight: 700; margin-right: 8px; }
+.plan-features .uncheck { color: var(--muted); margin-right: 8px; }
+
+/* ── 투어 카드 ── */
+.tour-card {
+  background: var(--cream); border: 1.5px solid var(--tan);
+  border-radius: 12px; padding: 24px; display: flex; gap: 24px;
+  align-items: flex-start;
+}
+.tour-card + .tour-card { margin-top: 16px; }
+.tour-dday {
+  background: var(--navy); color: var(--cream);
+  font-family: var(--ff-poster); font-size: 22px;
+  min-width: 60px; text-align: center; padding: 12px;
+  border-radius: 8px; flex-shrink: 0;
+}
+.tour-dday small { display: block; font-size: 9px; font-family: inherit; font-weight: 400; opacity: .7; }
+.tour-body  { flex: 1; }
+.tour-title { font-size: 16px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+.tour-spots { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.tour-meta  { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.tour-badge-reward { font-size: 11px; color: #c8a96e; font-weight: 700; }
+
+/* ── 리포트 통계 카드 ── */
+.report-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+.report-stat {
+  background: var(--cream); border: 1.5px solid var(--tan);
+  border-radius: 10px; padding: 18px; text-align: center;
+}
+.report-stat-val  { font-family: var(--ff-poster); font-size: 28px; color: var(--navy); }
+.report-stat-lbl  { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: .04em; }
+
+/* ── 공유 카드 ── */
+.share-card {
+  background: var(--navy); color: var(--cream);
+  border-radius: 16px; padding: 32px; text-align: center;
+  max-width: 340px; margin: 0 auto;
+}
+.share-card-title  { font-family: var(--ff-poster); font-size: 22px; margin-bottom: 4px; }
+.share-card-sub    { font-size: 12px; opacity: .6; margin-bottom: 24px; }
+.share-card-stats  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.share-stat-box    { background: rgba(255,255,255,.1); border-radius: 8px; padding: 14px; }
+.share-stat-val    { font-family: var(--ff-poster); font-size: 24px; }
+.share-stat-lbl    { font-size: 10px; opacity: .6; margin-top: 2px; }
+.share-card-footer { font-size: 10px; opacity: .4; letter-spacing: .1em; }
+
+/* ── 소셜 팔로우 ── */
+.follow-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--cream); border: 1px solid var(--tan);
+  border-radius: 10px; padding: 14px 18px;
+}
+.follow-card + .follow-card { margin-top: 8px; }
+.follow-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--navy); color: var(--cream);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.follow-name     { font-weight: 700; font-size: 14px; color: var(--navy); }
+.follow-meta     { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.follow-btn-wrap { margin-left: auto; }
+
+/* ── 빈 상태 ── */
+.comm-empty { text-align: center; padding: 48px 20px; color: var(--muted); }
+.comm-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+.cat-first { font-weight: 800; color: var(--navy); }
+.cat-rest  { font-weight: 400; color: var(--ink); }
+.prog-gold { background: #c8a96e; }
+
+.prog-navy { background: #1e2a4a; }
+.prog-warn { background: #e67e22; }

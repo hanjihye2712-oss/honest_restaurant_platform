@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/community/community.css' %}">
+{% block comm_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="comm-wrap">
+
+  <!-- ── 탑 내비게이션 ── -->
+  <nav class="comm-nav">
+    <a href="{% url 'community:badges' %}"       {% if active == 'badges' %}class="active"{% endif %}>🏅 뱃지·등급</a>
+    <a href="{% url 'community:challenge' %}"    {% if active == 'challenge' %}class="active"{% endif %}>📅 챌린지</a>
+    <a href="{% url 'community:price-report' %}" {% if active == 'price-report' %}class="active"{% endif %}>🔍 가격 감시단</a>
+    <a href="{% url 'community:reviewer' %}"     {% if active == 'reviewer' %}class="active"{% endif %}>✍️ 인증 리뷰어</a>
+    <a href="{% url 'community:membership' %}"   {% if active == 'membership' %}class="active"{% endif %}>💳 멤버십</a>
+    <a href="{% url 'community:tour' %}"         {% if active == 'tour' %}class="active"{% endif %}>🗺️ 탐방 투어</a>
+    <a href="{% url 'community:my-report' %}"    {% if active == 'my-report' %}class="active"{% endif %}>📊 나의 리포트</a>
+    <a href="{% url 'community:social' %}"       {% if active == 'social' %}class="active"{% endif %}>👥 소셜</a>
+  </nav>
+
+  <!-- ── 페이지 헤더 ── -->
+  <div class="comm-header">
+    <div class="comm-title">{% block page_title %}{% endblock %}</div>
+    <div class="comm-sub">{% block page_sub %}{% endblock %}</div>
+  </div>
+
+  {% block comm_content %}{% endblock %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // data-w → width 적용
+    document.querySelectorAll('[data-w]').forEach(function (el) {
+      el.style.width = el.dataset.w + '%';
+    });
+
+    // 커뮤니티 탭 nav sticky — 헤더 높이 동적 반영
+    var commNav    = document.querySelector('.comm-nav');
+    var hdrWrapper = document.querySelector('.hdr-wrapper');
+    if (commNav && hdrWrapper) {
+      function setNavTop() {
+        commNav.style.top = hdrWrapper.getBoundingClientRect().height + 'px';
+      }
+      setNavTop();
+      window.addEventListener('resize', setNavTop);
+    }
+  });
+</script>
+{% block comm_js %}{% endblock %}
+{% endblock %}

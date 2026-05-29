@@ -1,0 +1,77 @@
+{% extends "management/base.html" %}
+{% load static humanize %}
+
+{% block mgmt_css %}<link rel="stylesheet" href="{% static 'css/management/panel.css' %}">{% endblock %}
+{% block page_title %}마케팅{% endblock %}
+{% block page_sub %}AI 생성 SNS 마케팅 글 현황{% endblock %}
+
+{% block mgmt_content %}
+<div class="mgmt-stat-row">
+  <div class="mgmt-stat-card ok"><div class="mgmt-stat-lbl">발행 완료</div><div class="mgmt-stat-val">{{ published|intcomma }}</div></div>
+  <div class="mgmt-stat-card warn"><div class="mgmt-stat-lbl">예약</div><div class="mgmt-stat-val">{{ scheduled|intcomma }}</div></div>
+  <div class="mgmt-stat-card"><div class="mgmt-stat-lbl">임시저장</div><div class="mgmt-stat-val">{{ draft|intcomma }}</div></div>
+  <div class="mgmt-stat-card" style="border-color:#4361ee"><div class="mgmt-stat-lbl">최근 7일 생성</div><div class="mgmt-stat-val" style="color:#4361ee">{{ week|intcomma }}</div></div>
+</div>
+
+<form method="get" class="mgmt-filter-bar">
+  <a class="mgmt-filter-btn {% if current_status == 'all' %}active{% endif %}" href="?status=all">전체</a>
+  <a class="mgmt-filter-btn {% if current_status == 'published' %}active{% endif %}" href="?status=published">발행</a>
+  <a class="mgmt-filter-btn {% if current_status == 'scheduled' %}active{% endif %}" href="?status=scheduled">예약</a>
+  <a class="mgmt-filter-btn {% if current_status == 'draft' %}active{% endif %}" href="?status=draft">임시저장</a>
+</form>
+
+<div class="mgmt-table-wrap">
+  <table class="mgmt-table">
+    <thead><tr><th>식당명</th><th>플랫폼</th><th>내용 요약</th><th>해시태그</th><th>작성일</th><th>발행일</th><th>상태</th></tr></thead>
+    <tbody>
+      {% for p in posts %}
+      <tr data-status="{{ p.status }}">
+        <td><strong>{{ p.restaurant.name }}</strong></td>
+        <td>
+          {% if p.platform == 'instagram' %}<span class="mgmt-badge purple">인스타그램</span>
+          {% elif p.platform == 'naver_blog' %}<span class="mgmt-badge blue">네이버 블로그</span>
+          {% else %}<span class="mgmt-badge neutral">{{ p.platform }}</span>{% endif %}
+        </td>
+        <td class="mgmt-muted mgmt-td-ellipsis">{{ p.final_content|default:p.generated_content|truncatechars:40 }}</td>
+        <td class="mgmt-muted mgmt-td-ellipsis">{% if p.hashtags %}{% for tag in p.hashtags %}#{{ tag }} {% endfor %}{% else %}—{% endif %}</td>
+        <td class="mgmt-muted">{{ p.created_at|date:"Y.m.d" }}</td>
+        <td class="mgmt-muted">
+          {% if p.published_at %}{{ p.published_at|date:"Y.m.d" }}
+          {% elif p.scheduled_at %}{{ p.scheduled_at|date:"Y.m.d H:i" }} 예약
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if p.status == 'published' %}<span class="mgmt-badge ok">발행</span>
+          {% elif p.status == 'scheduled' %}<span class="mgmt-badge pending">예약</span>
+          {% else %}<span class="mgmt-badge neutral">임시저장</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7"><div class="mgmt-empty"><div class="mgmt-empty-icon">📢</div>마케팅 글이 없습니다.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="mgmt-pagination">
+  {% if page_obj.has_previous %}
+    <a class="mgmt-page-btn" href="?status={{ current_status }}&page={{ page_obj.previous_page_number }}">&#8249;</a>
+  {% endif %}
+  {% for p in page_nums %}
+    {% if p is None %}
+      <span class="mgmt-page-ellipsis">&#8230;</span>
+    {% elif p == page_obj.number %}
+      <span class="mgmt-page-btn active">{{ p }}</span>
+    {% else %}
+      <a class="mgmt-page-btn" href="?status={{ current_status }}&page={{ p }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}
+    <a class="mgmt-page-btn" href="?status={{ current_status }}&page={{ page_obj.next_page_number }}">&#8250;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block mgmt_js %}<script src="{% static 'js/management/panel.js' %}"></script>{% endblock %}

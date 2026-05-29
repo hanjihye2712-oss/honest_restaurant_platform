@@ -15,12 +15,16 @@ def classify_review(self, review_id: int, text: str) -> None:
         raise self.retry(exc=exc)
 
     # 분류 완료 후 식당 단위 집계 갱신
+    # interactions 앱이 이 tasks를 import할 수 있으므로 최상단에 두면 순환 import 발생
     from interactions.models import Review
-    restaurant_id = (
-        Review.objects
-        .values_list("restaurant_id", flat=True)
-        .get(pk=review_id)
-    )
+    try:
+        restaurant_id = (
+            Review.objects
+            .values_list("restaurant_id", flat=True)
+            .get(pk=review_id)
+        )
+    except Review.DoesNotExist:
+        return  # 분류 완료 전 리뷰가 삭제된 경우 집계 생략
     recalculate_ai_profile.delay(restaurant_id)
 
 
@@ -30,6 +34,7 @@ def recalculate_ai_profile(self, restaurant_id: int) -> None:
     식당 AI 프로필(골목장인 자격·AI 점수·대시보드 태그)을 집계·갱신한다.
     리뷰 분류 완료 후 자동 호출되며, 관리자가 수동으로 트리거할 수도 있다.
     """
+    # aggregator가 honest_restaurant 등 여러 앱을 import하므로 앱 로딩 완료 후 지연 import
     from .aggregator import aggregate_restaurant_ai
     try:
         aggregate_restaurant_ai(restaurant_id)

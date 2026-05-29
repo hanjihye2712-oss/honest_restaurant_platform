@@ -58,4 +58,31 @@
       if (e.key === 'Enter') doLogin();
     });
   });
+
+  /* ── 눈 아이콘: 클릭 시 2초 표시 후 자동 숨김 ── */
+  var EYE_OPEN   = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  var EYE_CLOSED = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>'
+    + '<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>'
+    + '<line x1="1" y1="1" x2="23" y2="23"/>';
+
+  document.querySelectorAll('.btn-eye').forEach(function (btn) {
+    var timer = null;
+    btn.addEventListener('click', function () {
+      var inp = document.getElementById(btn.dataset.target);
+      if (!inp) return;
+      var svg = btn.querySelector('svg');
+      if (inp.type === 'text') {
+        clearTimeout(timer);
+        inp.type = 'password';
+        svg.innerHTML = EYE_OPEN;
+        return;
+      }
+      inp.type = 'text';
+      svg.innerHTML = EYE_CLOSED;
+      timer = setTimeout(function () {
+        inp.type = 'password';
+        svg.innerHTML = EYE_OPEN;
+      }, 2000);
+    });
+  });
 })();

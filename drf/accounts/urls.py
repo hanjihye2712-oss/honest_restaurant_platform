@@ -11,6 +11,7 @@ urlpatterns = [
     # POST /accounts/api/ajax-login/   → 로그인  (세션 생성 + JWT 쿠키 발급)
     # POST /accounts/api/ajax-logout/  → 로그아웃 (세션 삭제 + JWT 블랙리스트 + 쿠키 삭제)
     # POST /accounts/api/ajax-signup/  → 회원가입 (유저 생성 + 세션 + JWT 쿠키)
+    path("api/check-username/",  views.UsernameCheckView.as_view(), name="check-username"),
     path("api/ajax-login/",  views.AjaxLoginView.as_view(),  name="ajax-login"),
     path("api/ajax-logout/", views.AjaxLogoutView.as_view(), name="ajax-logout"),
     path("api/ajax-signup/", views.AjaxSignupView.as_view(), name="ajax-signup"),

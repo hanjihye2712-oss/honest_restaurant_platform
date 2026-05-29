@@ -1,0 +1,81 @@
+{% extends "management/base.html" %}
+{% load static humanize %}
+
+{% block mgmt_css %}<link rel="stylesheet" href="{% static 'css/management/panel.css' %}">{% endblock %}
+{% block page_title %}영수증 인증{% endblock %}
+{% block page_sub %}방문 인증 처리 현황{% endblock %}
+
+{% block mgmt_content %}
+<div class="mgmt-stat-row">
+  <div class="mgmt-stat-card warn"><div class="mgmt-stat-lbl">대기</div><div class="mgmt-stat-val">{{ pending|intcomma }}</div><div class="mgmt-stat-sub">검토 필요</div></div>
+  <div class="mgmt-stat-card ok"><div class="mgmt-stat-lbl">승인 완료</div><div class="mgmt-stat-val">{{ approved|intcomma }}</div></div>
+  <div class="mgmt-stat-card alert"><div class="mgmt-stat-lbl">거부</div><div class="mgmt-stat-val">{{ rejected|intcomma }}</div></div>
+  <div class="mgmt-stat-card"><div class="mgmt-stat-lbl">전체</div><div class="mgmt-stat-val">{{ total|intcomma }}</div></div>
+</div>
+
+<form method="get" class="mgmt-filter-bar">
+  <input class="mgmt-search" name="q" value="{{ current_search }}" placeholder="식당명 검색…">
+  <button class="mgmt-filter-btn" type="submit">검색</button>
+  <span class="mgmt-filter-divider"></span>
+  <a class="mgmt-filter-btn {% if current_status == 'all' %}active{% endif %}" href="?status=all">전체</a>
+  <a class="mgmt-filter-btn {% if current_status == 'pending' %}active{% endif %}" href="?status=pending">대기</a>
+  <a class="mgmt-filter-btn {% if current_status == 'approved' %}active{% endif %}" href="?status=approved">승인</a>
+  <a class="mgmt-filter-btn {% if current_status == 'rejected' %}active{% endif %}" href="?status=rejected">거부</a>
+</form>
+
+<div class="mgmt-table-wrap">
+  <table class="mgmt-table">
+    <thead><tr><th>신청자</th><th>식당명</th><th>가격 일치율</th><th>코멘트</th><th>신청일</th><th>상태</th><th>영수증</th></tr></thead>
+    <tbody>
+      {% for rv in receipts %}
+      <tr data-status="{{ rv.status }}">
+        <td><strong>{{ rv.user.username }}</strong></td>
+        <td><a class="mgmt-link" href="{% url 'public_restaurants:restaurant-detail-page' rv.restaurant.pk %}">{{ rv.restaurant.name }}</a></td>
+        <td>
+          {% if rv.price_match_rate is not None %}
+            <span class="mgmt-badge {% if rv.price_match_rate >= 0.9 %}ok{% elif rv.price_match_rate >= 0.7 %}pending{% else %}bad{% endif %}">
+              {% widthratio rv.price_match_rate 1 100 %}%
+            </span>
+          {% else %}<span class="mgmt-muted">—</span>{% endif %}
+        </td>
+        <td class="mgmt-muted mgmt-td-ellipsis">{{ rv.comment|default:"—" }}</td>
+        <td class="mgmt-muted">{{ rv.submitted_at|date:"Y.m.d H:i" }}</td>
+        <td>
+          {% if rv.status == 'approved' %}<span class="mgmt-badge ok">승인</span>
+          {% elif rv.status == 'pending' %}<span class="mgmt-badge pending">대기</span>
+          {% else %}<span class="mgmt-badge bad">거부</span>{% endif %}
+        </td>
+        <td>
+          {% if rv.receipt_image %}<a class="mgmt-badge blue" href="{{ rv.receipt_image.url }}" target="_blank">보기</a>
+          {% else %}<span class="mgmt-muted">—</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7"><div class="mgmt-empty"><div class="mgmt-empty-icon">🧾</div>인증 내역이 없습니다.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="mgmt-pagination">
+  {% if page_obj.has_previous %}
+    <a class="mgmt-page-btn" href="?status={{ current_status }}&q={{ current_search }}&page={{ page_obj.previous_page_number }}">&#8249;</a>
+  {% endif %}
+  {% for p in page_nums %}
+    {% if p is None %}
+      <span class="mgmt-page-ellipsis">&#8230;</span>
+    {% elif p == page_obj.number %}
+      <span class="mgmt-page-btn active">{{ p }}</span>
+    {% else %}
+      <a class="mgmt-page-btn" href="?status={{ current_status }}&q={{ current_search }}&page={{ p }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}
+    <a class="mgmt-page-btn" href="?status={{ current_status }}&q={{ current_search }}&page={{ page_obj.next_page_number }}">&#8250;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block mgmt_js %}<script src="{% static 'js/management/panel.js' %}"></script>{% endblock %}

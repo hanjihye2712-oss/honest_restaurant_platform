@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 
 
 class SaleRecord(models.Model):
+    STATUS_READY     = "READY"
+    STATUS_DONE      = "DONE"
+    STATUS_CANCELED  = "CANCELED"
+
     restaurant = models.ForeignKey(
         'ManagedRestaurant',
         on_delete=models.SET_NULL,
@@ -12,7 +16,7 @@ class SaleRecord(models.Model):
     )
     order_id   = models.CharField(max_length=100, unique=True, verbose_name="주문번호")
     amount     = models.IntegerField(verbose_name="총 결제금액")
-    status     = models.CharField(max_length=20, default="READY", verbose_name="결제상태")
+    status     = models.CharField(max_length=20, default=STATUS_READY, verbose_name="결제상태")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="결제일시")
 
     def __str__(self):
@@ -31,10 +35,13 @@ class SaleItem(models.Model):
 
 
 class ManagedRestaurant(models.Model):
-    STATUS_CHOICES = [
-        ('active',   '관리 중'),
-        ('inactive', '휴면'),
-        ('pending',  '검토 중'),
+    STATUS_ACTIVE   = 'active'
+    STATUS_INACTIVE = 'inactive'
+    STATUS_PENDING  = 'pending'
+    STATUS_CHOICES  = [
+        (STATUS_ACTIVE,   '관리 중'),
+        (STATUS_INACTIVE, '휴면'),
+        (STATUS_PENDING,  '검토 중'),
     ]
     public_restaurant = models.OneToOneField(
         'honest_restaurant.PublicRestaurantData',

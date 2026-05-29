@@ -22,8 +22,8 @@
 .ph-deco { position: absolute; right: 0; top: 0; bottom: 0; width: 200px; opacity: .06; font-family: var(--ff-poster); font-size: 300px; color: var(--navy); display: flex; align-items: center; pointer-events: none; overflow: hidden; }
 
 /* ── 엽서형 카드 그리드 ── */
-.postcard-grid { max-width: 1200px; margin: 0 auto; padding: 32px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-.postcard { background: var(--cream); border: 1px solid var(--tan); position: relative; cursor: pointer; transition: transform .2s; }
+.postcard-grid { max-width: 1200px; margin: 0 auto; padding: 32px 40px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; align-items: stretch; }
+.postcard { background: var(--cream); border: 1px solid var(--tan); position: relative; cursor: pointer; transition: transform .2s; display: flex; flex-direction: column; height: 100%; }
 .postcard:hover { transform: rotate(0deg) translateY(-4px); }
 .postcard:nth-child(odd) { transform: rotate(-.4deg); }
 .postcard:nth-child(odd):hover { transform: rotate(0deg) translateY(-4px); }
@@ -36,6 +36,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  background-color: var(--tan);
 }
 .pci1  { background-image: url('/static/img/honest_restaurant/gimbap.jpg'); }       /* 김밥집 */
 .pci2  { background-image: url('/static/img/honest_restaurant/kalguksu.jpg'); }      /* 손칼국수 */
@@ -45,16 +46,19 @@
 .pci6  { background-image: url('/static/img/honest_restaurant/pajeon.jpg'); }        /* 생선구이 */
 .pci7  { background-image: url('/static/img/honest_restaurant/naengmyeon.jpg'); }    /* 냉면집 */
 .pci8  { background-image: url('/static/img/honest_restaurant/doenjang.jpg'); }      /* 두부전골 */
-.pci9  { background-image: url('/static/img/honest_restaurant/bossam.jpg'); }        /* 보쌈집 */
-.pci10 { background-image: url('/static/img/honest_restaurant/haejangguk.jpg'); }    /* 해장국 */
-.pci11 { background-image: url('/static/img/honest_restaurant/hanjeongsik.jpg'); }   /* 한정식 */
-.pci12 { background-image: url('/static/img/honest_restaurant/tteokbokki.jpg'); }    /* 떡볶이 */
-.pc-body { padding: 14px 16px 18px; border-top: 2px solid var(--tan); }
-.pc-gov { font-size: 10px; color: var(--red); font-weight: 700; letter-spacing: .1em; margin-bottom: 6px; }
+.pci9  { background-image: url('/static/img/honest_restaurant/bossam.jpg'); }        /* 보쌈/경양식 */
+.pci10 { background-image: url('/static/img/honest_restaurant/haejangguk.jpg'); }    /* 해장국/탕류 */
+.pci11 { background-image: url('/static/img/honest_restaurant/hanjeongsik.jpg'); }   /* 한정식/뷔페 */
+.pci12 { background-image: url('/static/img/honest_restaurant/tteokbokki.jpg'); }    /* 분식/패스트푸드 */
+.pci13 { background-image: url('/static/img/honest_restaurant/naengmyeon_grilled.jpg'); } /* 구이/통닭/호프 */
+.pci14 { background-image: url('/static/img/honest_restaurant/sundae.jpg'); }        /* 순대/횟집 */
+.pci15 { background-image: url('/static/img/honest_restaurant/sundubu.jpg'); }       /* 일식/복어 */
+.pc-body { padding: 14px 16px 18px; border-top: 2px solid var(--tan); display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.pc-gov { font-size: 10px; color: var(--red); font-weight: 700; letter-spacing: .1em; margin-bottom: 6px; min-height: 14px; }
 .pc-name { font-family: var(--ff-deco); font-size: 18px; color: var(--navy); margin-bottom: 4px; line-height: 1.3; }
 .pc-meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
 .pc-quote { font-size: 12px; color: var(--ink); line-height: 1.55; padding: 8px 10px; background: var(--paper); border-left: 3px solid var(--red); margin-bottom: 10px; font-style: italic; }
-.pc-foot { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding-top: 8px; border-top: 1px dashed var(--tan); }
+.pc-foot { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding-top: 8px; border-top: 1px dashed var(--tan); flex-shrink: 0; }
 
 /* ── 상세 섹션 (목업) — restaurant_detail.css와 공유하는 클래스 보완 ── */
 .dp-left  { min-width: 0; }
@@ -88,3 +92,45 @@
 .review-stars               { color: var(--red); letter-spacing: 2px; }
 .review-date                { font-size: 12px; color: var(--muted); margin-left: auto; }
 .review-content             { font-size: 13px; color: var(--ink); line-height: 1.7; }
+
+/* ── 랭킹 섹션 헤더 ── */
+.idx-chapter { max-width: 1200px; margin: 0 auto; padding: 36px 40px 0; display: flex; align-items: center; gap: 10px; border-bottom: 3px solid var(--navy); }
+.idx-ch-title { font-family: var(--ff-poster); font-size: 26px; color: var(--navy); letter-spacing: -0.5px; }
+.idx-ch-badge { font-family: var(--ff-deco); font-size: 10px; color: var(--red); border: 1px solid var(--red); padding: 3px 10px; margin-left: 6px; letter-spacing: .06em; }
+
+/* postcard-grid 섹션 간격 조정 */
+.idx-chapter + .postcard-grid { padding-top: 20px; padding-bottom: 12px; }
+
+/* 랭킹 뱃지 (업종별 1위 TOP 1/2/3/4) */
+.pc-rank-badge { position: absolute; top: 8px; left: 8px; background: var(--red); color: var(--cream); font-family: var(--ff-poster); font-size: 10px; padding: 3px 10px; letter-spacing: .06em; z-index: 2; }
+
+/* 비로그인 가게명 블러 */
+.pc-name--blur { filter: blur(5px); user-select: none; cursor: pointer; }
+.pc-name--blur::after {
+  content: '로그인 후 확인';
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  filter: blur(0);
+  margin-top: 2px;
+  letter-spacing: .03em;
+}
+
+/* 리뷰 키워드 — pc-quote 스타일 답습 */
+.pc-keywords { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px 10px; padding: 8px 10px; background: var(--paper); border-left: 3px solid var(--red); margin-bottom: 10px; min-height: 36px; flex: 1; }
+.pc-keywords--empty { flex: 1; }
+.pc-kw-chip  { font-size: 11px; color: var(--ink); font-style: italic; letter-spacing: .02em; }
+.pc-kw-chip::before { content: '#'; }
+
+/* postcard를 <a> 태그로 사용할 때 링크 스타일 제거 */
+a.postcard { text-decoration: none; color: inherit; display: flex; flex-direction: column; height: 100%; }
+
+@media (max-width: 960px) {
+  .idx-chapter { padding: 28px 24px 0; }
+  .idx-ch-title { font-size: 22px; }
+}
+@media (max-width: 540px) {
+  .idx-chapter { padding: 24px 16px 0; }
+  .idx-ch-title { font-size: 19px; }
+  .idx-chapter + .postcard-grid { padding: 16px 16px 8px; }
+}

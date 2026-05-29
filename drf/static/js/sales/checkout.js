@@ -31,6 +31,10 @@
   ];
 
   /* ── 유틸 ── */
+  function fmtPrice(n) {
+    return Number(n).toLocaleString('ko-KR');
+  }
+
   function shuffle(arr) {
     return [...arr].sort(() => 0.5 - Math.random());
   }
@@ -74,7 +78,7 @@
   /* ── 결제 버튼 ── */
   document.getElementById('payment-button').addEventListener('click', async function () {
     if (!paymentWidget) {
-      alert('결제 시스템 로딩 중입니다. 잠시만 기다려주세요.');
+      showAlert('결제 시스템 로딩 중입니다. 잠시만 기다려주세요.');
       return;
     }
 
@@ -106,7 +110,7 @@
       });
     } catch (err) {
       console.error(err);
-      alert('오류: ' + err.message);
+      showAlert('오류: ' + err.message);
     }
   });
 })();

@@ -30,6 +30,19 @@ class FakeReviewResult(models.Model):
     analyzed_at     = models.DateTimeField(null=True, blank=True, verbose_name="분석 완료 시각")
     error_msg       = models.TextField(blank=True, verbose_name="오류 메시지")
 
+    @classmethod
+    def reset_for_review(cls, review_id: int) -> None:
+        """리뷰 내용 수정 시 이전 탐지 결과를 초기화한다."""
+        cls.objects.filter(review_id=review_id).update(
+            status          = cls.STATUS_PENDING,
+            is_fake         = None,
+            confidence      = None,
+            translated_text = "",
+            penalty_score   = 0,
+            analyzed_at     = None,
+            error_msg       = "",
+        )
+
     def __str__(self):
         return f"{self.review} → {self.get_status_display()}"
 

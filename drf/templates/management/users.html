@@ -1,0 +1,72 @@
+{% extends "management/base.html" %}
+{% load static humanize %}
+
+{% block mgmt_css %}<link rel="stylesheet" href="{% static 'css/management/panel.css' %}">{% endblock %}
+{% block page_title %}회원 관리{% endblock %}
+{% block page_sub %}전체 가입 회원 목록{% endblock %}
+
+{% block mgmt_content %}
+<div class="mgmt-stat-row">
+  <div class="mgmt-stat-card"><div class="mgmt-stat-lbl">전체 회원</div><div class="mgmt-stat-val">{{ total|intcomma }}</div></div>
+  <div class="mgmt-stat-card ok"><div class="mgmt-stat-lbl">사장님</div><div class="mgmt-stat-val">{{ owner_count|intcomma }}</div><div class="mgmt-stat-sub">가게 연동 완료</div></div>
+  <div class="mgmt-stat-card"><div class="mgmt-stat-lbl">손님</div><div class="mgmt-stat-val">{{ guest_count|intcomma }}</div></div>
+  <div class="mgmt-stat-card" style="border-color:#4361ee"><div class="mgmt-stat-lbl">신규 가입 (7일)</div><div class="mgmt-stat-val" style="color:#4361ee">{{ new_7d|intcomma }}</div></div>
+  <div class="mgmt-stat-card"><div class="mgmt-stat-lbl">신규 가입 (30일)</div><div class="mgmt-stat-val">{{ new_30d|intcomma }}</div></div>
+</div>
+
+<form method="get" class="mgmt-filter-bar">
+  <input class="mgmt-search" name="q" value="{{ current_search }}" placeholder="아이디 검색…">
+  <button class="mgmt-filter-btn" type="submit">검색</button>
+  <span class="mgmt-filter-divider"></span>
+  <a class="mgmt-filter-btn {% if current_role == 'all' %}active{% endif %}" href="?role=all">전체</a>
+  <a class="mgmt-filter-btn {% if current_role == 'owner' %}active{% endif %}" href="?role=owner">사장님</a>
+  <a class="mgmt-filter-btn {% if current_role == 'guest' %}active{% endif %}" href="?role=guest">손님</a>
+</form>
+
+<div class="mgmt-table-wrap">
+  <table class="mgmt-table">
+    <thead><tr><th>아이디</th><th>이름</th><th>역할</th><th>가입일</th><th>마지막 로그인</th><th>리뷰</th><th>북마크</th></tr></thead>
+    <tbody>
+      {% for u in users %}
+      <tr data-status="{{ u.profile.role|default:'guest' }}">
+        <td><strong>{{ u.username }}</strong></td>
+        <td class="mgmt-muted">{{ u.get_full_name|default:"—" }}</td>
+        <td>
+          {% if u.profile.role == 'owner' %}<span class="mgmt-badge ok">사장님</span>
+          {% elif u.profile.role == 'admin' %}<span class="mgmt-badge purple">관리자</span>
+          {% else %}<span class="mgmt-badge neutral">손님</span>{% endif %}
+        </td>
+        <td class="mgmt-muted">{{ u.date_joined|date:"Y.m.d" }}</td>
+        <td class="mgmt-muted">{% if u.last_login %}{{ u.last_login|date:"Y.m.d H:i" }}{% else %}—{% endif %}</td>
+        <td class="mgmt-muted">{{ u.review_count|default:0|intcomma }}</td>
+        <td class="mgmt-muted">{{ u.bookmark_count|default:0|intcomma }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7"><div class="mgmt-empty"><div class="mgmt-empty-icon">👥</div>회원 데이터가 없습니다.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="mgmt-pagination">
+  {% if page_obj.has_previous %}
+    <a class="mgmt-page-btn" href="?role={{ current_role }}&q={{ current_search }}&page={{ page_obj.previous_page_number }}">&#8249;</a>
+  {% endif %}
+  {% for p in page_nums %}
+    {% if p is None %}
+      <span class="mgmt-page-ellipsis">&#8230;</span>
+    {% elif p == page_obj.number %}
+      <span class="mgmt-page-btn active">{{ p }}</span>
+    {% else %}
+      <a class="mgmt-page-btn" href="?role={{ current_role }}&q={{ current_search }}&page={{ p }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}
+    <a class="mgmt-page-btn" href="?role={{ current_role }}&q={{ current_search }}&page={{ page_obj.next_page_number }}">&#8250;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block mgmt_js %}<script src="{% static 'js/management/panel.js' %}"></script>{% endblock %}

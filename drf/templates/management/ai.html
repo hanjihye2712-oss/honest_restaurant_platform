@@ -1,0 +1,100 @@
+{% extends "management/base.html" %}
+{% load static humanize %}
+
+{% block mgmt_css %}<link rel="stylesheet" href="{% static 'css/management/panel.css' %}">{% endblock %}
+{% block page_title %}AI 분석{% endblock %}
+{% block page_sub %}리뷰 분류 · 허위 탐지 · 위생 경고 현황{% endblock %}
+
+{% block mgmt_content %}
+
+<div class="mgmt-card">
+  <div class="mgmt-card-title">🤖 리뷰 분류 현황</div>
+  <div class="mgmt-stat-row">
+    <div class="mgmt-stat-card ok"><div class="mgmt-stat-lbl">분류 완료</div><div class="mgmt-stat-val">{{ cls_done|intcomma }}</div></div>
+    <div class="mgmt-stat-card warn"><div class="mgmt-stat-lbl">분석 대기</div><div class="mgmt-stat-val">{{ cls_pending|intcomma }}</div><div class="mgmt-stat-sub">Celery 처리 중</div></div>
+    <div class="mgmt-stat-card alert"><div class="mgmt-stat-lbl">실패</div><div class="mgmt-stat-val">{{ cls_failed|intcomma }}</div><div class="mgmt-stat-sub">FastAPI 서버 확인</div></div>
+  </div>
+</div>
+
+<div class="mgmt-card">
+  <div class="mgmt-card-title">🔍 허위 리뷰 탐지</div>
+  <div class="mgmt-stat-row">
+    <div class="mgmt-stat-card alert"><div class="mgmt-stat-lbl">허위 의심</div><div class="mgmt-stat-val">{{ fake_count|intcomma }}</div></div>
+    <div class="mgmt-stat-card ok"><div class="mgmt-stat-lbl">분석 완료</div><div class="mgmt-stat-val">{{ fake_done|intcomma }}</div></div>
+    <div class="mgmt-stat-card warn"><div class="mgmt-stat-lbl">분석 대기</div><div class="mgmt-stat-val">{{ fake_pending|intcomma }}</div></div>
+    <div class="mgmt-stat-card"><div class="mgmt-stat-lbl">전체</div><div class="mgmt-stat-val">{{ fake_total|intcomma }}</div></div>
+  </div>
+  {% if recent_fakes %}
+  <div class="mgmt-table-wrap">
+    <table class="mgmt-table">
+      <thead><tr><th>작성자</th><th>식당명</th><th>신뢰도</th><th>분석일</th></tr></thead>
+      <tbody>
+        {% for fr in recent_fakes %}
+        <tr>
+          <td><strong>{{ fr.review.user.username }}</strong></td>
+          <td>{{ fr.review.restaurant.name }}</td>
+          <td><span class="mgmt-badge {% if fr.confidence >= 0.9 %}bad{% else %}pending{% endif %}">{{ fr.confidence|floatformat:2 }}</span></td>
+          <td class="mgmt-muted">{{ fr.analyzed_at|date:"Y.m.d H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<div class="mgmt-card">
+  <div class="mgmt-card-title">⚠️ 위생 경고 식당 <span style="font-size:11px;color:var(--muted);font-weight:400;">최근 14일 기준</span></div>
+  {% if hygiene_list %}
+  <div class="mgmt-table-wrap">
+    <table class="mgmt-table">
+      <thead><tr><th>식당명</th><th>위생 부정 비율</th><th>AI 순점수</th><th>골목장인</th></tr></thead>
+      <tbody>
+        {% for ap in hygiene_list %}
+        <tr>
+          <td><a class="mgmt-link" href="{% url 'public_restaurants:restaurant-detail-page' ap.restaurant.pk %}">{{ ap.restaurant.name }}</a></td>
+          <td><span class="mgmt-badge bad">{{ ap.recent_hygiene_negative_ratio|floatformat:1 }}%</span></td>
+          <td><span class="mgmt-badge {% if ap.ai_net_score >= 0 %}ok{% else %}bad{% endif %}">{% if ap.ai_net_score >= 0 %}+{% endif %}{{ ap.ai_net_score }}</span></td>
+          <td>{% if ap.is_alley_eligible %}<span class="mgmt-badge purple">달성</span>{% else %}<span class="mgmt-muted">—</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="mgmt-empty"><div class="mgmt-empty-icon">✅</div>위생 경고 중인 식당이 없습니다.</div>
+  {% endif %}
+</div>
+
+<div class="mgmt-card">
+  <div class="mgmt-card-title">📄 AI 주간 리포트</div>
+  <div class="mgmt-stat-row">
+    <div class="mgmt-stat-card ok"><div class="mgmt-stat-lbl">생성 완료</div><div class="mgmt-stat-val">{{ report_done|intcomma }}</div></div>
+    <div class="mgmt-stat-card warn"><div class="mgmt-stat-lbl">대기</div><div class="mgmt-stat-val">{{ report_pending|intcomma }}</div></div>
+    <div class="mgmt-stat-card alert"><div class="mgmt-stat-lbl">실패</div><div class="mgmt-stat-val">{{ report_failed|intcomma }}</div></div>
+  </div>
+  {% if recent_reports %}
+  <div class="mgmt-table-wrap">
+    <table class="mgmt-table">
+      <thead><tr><th>식당명</th><th>분석 기간</th><th>상태</th></tr></thead>
+      <tbody>
+        {% for r in recent_reports %}
+        <tr>
+          <td>{{ r.restaurant.name }}</td>
+          <td class="mgmt-muted">{{ r.period_start }} ~ {{ r.period_end }}</td>
+          <td>
+            {% if r.status == 'done' %}<span class="mgmt-badge ok">완료</span>
+            {% elif r.status == 'pending' %}<span class="mgmt-badge pending">대기</span>
+            {% else %}<span class="mgmt-badge bad">실패</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block mgmt_js %}<script src="{% static 'js/management/panel.js' %}"></script>{% endblock %}

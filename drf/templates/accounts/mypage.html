@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}내 정보 | 정직식당{% endblock %}
 
@@ -32,11 +32,11 @@
   {# ── 통계 ── #}
   <div class="mp-stats">
     <a href="/bookmarks/" class="mp-stat mp-stat-link">
-      <div class="mp-stat-num">{{ bookmark_count }}</div>
+      <div class="mp-stat-num">{{ bookmark_count|intcomma }}</div>
       <div class="mp-stat-label">북마크</div>
     </a>
     <a href="/reviews/" class="mp-stat mp-stat-link">
-      <div class="mp-stat-num">{{ review_count }}</div>
+      <div class="mp-stat-num">{{ review_count|intcomma }}</div>
       <div class="mp-stat-label">리뷰</div>
     </a>
     <div class="mp-stat">
@@ -62,7 +62,8 @@
       {% csrf_token %}
       <div class="mp-field">
         <label for="inp-nickname">닉네임 (표시 이름)</label>
-        <input type="text" id="inp-nickname" name="first_name" value="{{ user.first_name }}" maxlength="30">
+        <input type="text" id="inp-nickname" name="first_name" value="{{ user.first_name }}" maxlength="30"
+               placeholder="헤더에 표시될 이름 (미입력 시 가게 이름 사용)">
       </div>
       <div class="mp-field">
         <label for="inp-email">이메일</label>
@@ -76,41 +77,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-(function () {
-  const overlay = document.getElementById('modal-edit-profile');
-  const btnOpen = document.getElementById('btn-edit-profile');
-  const btnClose = document.getElementById('btn-modal-close');
-  const alert   = document.getElementById('mp-alert');
-  const form    = document.getElementById('form-edit-profile');
-
-  btnOpen.addEventListener('click', () => overlay.classList.add('open'));
-  btnClose.addEventListener('click', () => overlay.classList.remove('open'));
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
-
-  function showAlert(msg, type) {
-    alert.textContent = msg;
-    alert.className = 'mp-alert ' + type;
-    alert.style.display = 'block';
-  }
-
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const data = {
-      first_name: form.querySelector('[name="first_name"]').value.trim(),
-      email:      form.querySelector('[name="email"]').value.trim(),
-    };
-    try {
-      const res = await axios.patch('/accounts/api/me/update/', data, {
-        headers: { 'X-CSRFToken': form.querySelector('[name="csrfmiddlewaretoken"]').value }
-      });
-      showAlert('저장되었습니다.', 'success');
-      setTimeout(() => location.reload(), 800);
-    } catch (err) {
-      const msg = err.response?.data?.detail || '저장 중 오류가 발생했습니다.';
-      showAlert(msg, 'error');
-    }
-  });
-})();
-</script>
+<script src="{% static 'js/accounts/mypage.js' %}"></script>
 {% endblock %}

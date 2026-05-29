@@ -1,0 +1,78 @@
+/*
+ * management/panel.css
+ * =====================
+ * 서브페이지 전용 컴포넌트
+ * 통계 요약 카드 / 필터 바 / 페이지네이션 / 섹션 카드 블록
+ */
+
+/* ── 통계 요약 카드 ── */
+.mgmt-stat-row  { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.mgmt-stat-card {
+  background: var(--cream); border: 1px solid var(--tan);
+  border-radius: 8px; padding: 16px 20px; min-width: 140px; flex: 1;
+}
+.mgmt-stat-card.alert { border-color: var(--red); }
+.mgmt-stat-card.warn  { border-color: #e67e22; }
+.mgmt-stat-card.ok    { border-color: #27ae60; }
+.mgmt-stat-lbl {
+  font-size: 10px; color: var(--muted); font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px;
+}
+.mgmt-stat-val {
+  font-family: var(--ff-poster); font-size: 28px; color: var(--navy); line-height: 1;
+}
+.mgmt-stat-card.alert .mgmt-stat-val { color: var(--red); }
+.mgmt-stat-card.warn  .mgmt-stat-val { color: #e67e22; }
+.mgmt-stat-card.ok    .mgmt-stat-val { color: #27ae60; }
+.mgmt-stat-sub { font-size: 10px; color: var(--muted); margin-top: 6px; }
+
+/* ── 필터 바 ── */
+.mgmt-filter-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.mgmt-search {
+  flex: 1; min-width: 200px; max-width: 320px;
+  padding: 8px 12px; border: 1px solid var(--tan); border-radius: 6px;
+  font-size: 13px; background: var(--cream); color: var(--ink); font-family: inherit;
+}
+.mgmt-search:focus { outline: none; border-color: var(--navy); }
+.mgmt-filter-btn {
+  padding: 7px 14px; border: 1px solid var(--tan); border-radius: 6px;
+  font-size: 12px; background: var(--cream); color: var(--ink);
+  cursor: pointer; font-family: inherit; font-weight: 600; transition: background .15s;
+}
+.mgmt-filter-btn:hover  { background: var(--tan); }
+.mgmt-filter-btn.active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+
+/* ── 페이지네이션 ── */
+.mgmt-pagination {
+  display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 20px;
+}
+.mgmt-page-btn {
+  padding: 6px 14px; border: 1px solid var(--tan); border-radius: 6px;
+  font-size: 12px; background: var(--cream); color: var(--ink);
+  cursor: pointer; text-decoration: none; font-weight: 600; transition: background .15s;
+}
+.mgmt-page-btn:hover    { background: var(--tan); }
+.mgmt-page-btn.active   { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+.mgmt-page-btn.disabled { opacity: .4; pointer-events: none; }
+.mgmt-page-info         { font-size: 12px; color: var(--muted); }
+
+/* ── 섹션 카드 (AI 분석 페이지 등) ── */
+.mgmt-card       { background: var(--cream); border: 1px solid var(--tan); border-radius: 8px; padding: 22px; margin-bottom: 20px; }
+.mgmt-card-title { font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+.mgmt-filter-divider {
+  width: 1px; height: 20px;
+  background: var(--tan); margin: 0 4px; flex-shrink: 0;
+}
+
+.mgmt-filter-btn[type="submit"] {
+  background: var(--tan);
+  border-color: #c8b89a;
+  color: var(--ink);
+  font-weight: 700;
+}
+.mgmt-filter-btn[type="submit"]:hover {
+  background: #c8b89a;
+}
+
+.mgmt-page-ellipsis { font-size: 12px; color: var(--muted); padding: 0 4px; }

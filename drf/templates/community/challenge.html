@@ -1,0 +1,58 @@
+{% extends "community/base.html" %}
+{% load static %}
+
+{% block page_title %}📅 이달의 챌린지{% endblock %}
+{% block page_sub %}{{ month }} · 미션 달성 시 뱃지와 포인트 지급{% endblock %}
+
+{% block comm_content %}
+
+<!-- ── 진행 중인 챌린지 ── -->
+<div class="comm-section-title">🔥 진행 중</div>
+
+{% for c in active_challenges %}
+<div class="comm-card" style="margin-bottom:14px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;">
+      <div style="font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px;">{{ c.title }}</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">{{ c.desc }}</div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;">
+        <span>진행률</span>
+        <span>{{ c.progress }} / {{ c.total }} 완료</span>
+      </div>
+      <div class="prog-wrap" style="height:10px;">
+        <div class="prog-fill {{ c.css_class }}" data-w="{{ c.pct }}"></div>
+      </div>
+      <div style="font-size:11px;color:#c8a96e;font-weight:700;margin-top:10px;">🎁 {{ c.reward }}</div>
+    </div>
+    <div style="text-align:center;flex-shrink:0;">
+      <div style="background:var(--navy);color:var(--cream);border-radius:8px;padding:10px 16px;">
+        <div style="font-family:var(--ff-poster);font-size:22px;">D-{{ c.dday }}</div>
+        <div style="font-size:9px;opacity:.7;margin-top:2px;">마감까지</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- ── 완료한 챌린지 ── -->
+<div class="comm-section-title" style="margin-top:36px;">✅ 완료한 챌린지</div>
+<div class="comm-card">
+  <table class="comm-table">
+    <thead>
+      <tr><th>챌린지명</th><th>획득 보상</th><th>완료일</th></tr>
+    </thead>
+    <tbody>
+      {% for c in completed_challenges %}
+      <tr>
+        <td><strong>{{ c.title }}</strong></td>
+        <td style="color:#c8a96e;font-weight:700;">{{ c.reward }}</td>
+        <td class="muted">{{ c.date }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">완료한 챌린지가 없습니다.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/management/base.css' %}">
+<link rel="stylesheet" href="{% static 'css/management/components.css' %}">
+{% block mgmt_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="mgmt-layout">
+
+  <aside class="mgmt-sidebar">
+    <div class="mgmt-sb-label">MENU</div>
+    <nav class="mgmt-sb-nav">
+      <a class="mgmt-sb-item {% if active_menu == 'dashboard'   %}active{% endif %}" href="{% url 'management:dashboard' %}">
+        <span class="mgmt-sb-icon">📊</span> 운영 현황
+      </a>
+      <a class="mgmt-sb-item {% if active_menu == 'restaurants' %}active{% endif %}" href="{% url 'management:restaurants' %}">
+        <span class="mgmt-sb-icon">🏪</span> 식당 관리
+      </a>
+      <a class="mgmt-sb-item {% if active_menu == 'users'       %}active{% endif %}" href="{% url 'management:users' %}">
+        <span class="mgmt-sb-icon">👥</span> 회원 관리
+      </a>
+      <a class="mgmt-sb-item {% if active_menu == 'receipts'    %}active{% endif %}" href="{% url 'management:receipts' %}">
+        <span class="mgmt-sb-icon">🧾</span> 영수증 인증
+      </a>
+      <a class="mgmt-sb-item {% if active_menu == 'ai'          %}active{% endif %}" href="{% url 'management:ai' %}">
+        <span class="mgmt-sb-icon">🤖</span> AI 분석
+      </a>
+      <a class="mgmt-sb-item {% if active_menu == 'marketing'   %}active{% endif %}" href="{% url 'management:marketing' %}">
+        <span class="mgmt-sb-icon">📢</span> 마케팅
+      </a>
+    </nav>
+  </aside>
+
+  <div class="mgmt-main">
+    <div class="mgmt-header">
+      <div>
+        <div class="mgmt-title">{% block page_title %}{% endblock %}</div>
+        <div class="mgmt-subtitle">{% block page_sub %}{% endblock %}</div>
+      </div>
+      <div class="mgmt-header-right">
+        <span class="mgmt-clock" id="mgmt-clock"></span>
+        <a href="/admin/" class="mgmt-admin-link">Django 어드민 →</a>
+      </div>
+    </div>
+
+    {% block mgmt_content %}{% endblock %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/management/base.js' %}"></script>
+{% block mgmt_js %}{% endblock %}
+{% endblock %}

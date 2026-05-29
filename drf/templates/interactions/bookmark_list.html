@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}내 북마크 | 정직식당{% endblock %}
 
@@ -22,7 +22,7 @@
   </div>
 
   {% if bookmarks %}
-    <div class="bookmark-count">총 <strong>{{ paginator.count }}</strong>개</div>
+    <div class="bookmark-count">총 <strong>{{ paginator.count|intcomma }}</strong>개</div>
     <div class="bookmark-list">
       {% for bm in bookmarks %}
       <a href="{% url 'public_restaurants:restaurant-detail-page' bm.restaurant.pk %}"

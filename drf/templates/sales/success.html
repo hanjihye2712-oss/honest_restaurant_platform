@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}결제 성공 | 정직순대국{% endblock %}
 
@@ -17,7 +17,7 @@
     </p>
     <p>
       <span class="label">결제 금액</span>
-      <span class="value">{{ amount }}원</span>
+      <span class="value">{{ amount|intcomma }}원</span>
     </p>
     <p>
       <span class="label">결제 키</span>

@@ -77,9 +77,11 @@
 
 .mkt-result-box  { background: var(--paper); border: 1px solid var(--tan); padding: 14px; margin-bottom: 16px; }
 .mkt-result-plat { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
-.mkt-edit-area   { width: 100%; box-sizing: border-box; border: 2px solid var(--tan); background: transparent; font-family: var(--ff-body); font-size: 13px; color: var(--ink); padding: 10px 12px; resize: vertical; outline: none; min-height: 100px; line-height: 1.7; }
+.mkt-edit-area   { width: 100%; box-sizing: border-box; border: 2px solid var(--tan); background: transparent; font-family: var(--ff-body); font-size: 13px; color: var(--ink); padding: 10px 12px; resize: vertical; outline: none; min-height: 220px; line-height: 1.7; }
 .mkt-edit-area:focus { border-color: var(--navy); }
-.mkt-tags-row    { margin-top: 8px; font-size: 11px; color: var(--red); font-weight: 700; }
+.mkt-tags-label  { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted); padding: 8px 12px 0; }
+.mkt-tags-edit   { width: 100%; box-sizing: border-box; border: none; background: transparent; font-family: var(--ff-body); font-size: 11px; color: var(--red); font-weight: 700; padding: 4px 12px 10px; resize: none; outline: none; line-height: 1.6; }
+.mkt-tags-edit:focus { background: var(--paper); }
 
 .mkt-publish-row              { display: flex; gap: 10px; margin-top: 20px; }
 .mkt-publish-row .btn-poster-s { flex: 1; padding: 12px; }
@@ -129,6 +131,95 @@
 .mmw-actions button  { font-size: 11px; padding: 5px 10px; cursor: pointer; border: 1px solid var(--navy); background: transparent; color: var(--navy); font-family: var(--ff-body); white-space: nowrap; }
 .mmw-actions .btn-del { border-color: var(--red); color: var(--red); }
 .mmw-actions .btn-pub { border-color: #155724; color: #155724; background: #d4edda; }
+
+/* ── 대시보드 인라인 마케팅 폼 ── */
+.mkt-inline-wrap       { display: flex; flex-direction: column; height: 100%; }
+.mkt-inline-sub        { font-size: 11px; color: var(--muted); margin: 0 0 14px; }
+.mkt-inline-textarea   {
+  width: 100%; box-sizing: border-box; flex: 1;
+  border: 2px solid var(--navy); background: var(--paper);
+  font-family: var(--ff-body); font-size: 13px; color: var(--ink);
+  padding: 10px 12px; resize: none; outline: none;
+  min-height: 88px; line-height: 1.65;
+}
+.mkt-inline-textarea:focus { border-color: var(--red); }
+.mkt-inline-platforms  { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.mkt-inline-plat-btn   {
+  padding: 5px 11px; border: 2px solid var(--tan); background: var(--paper);
+  font-family: var(--ff-body); font-size: 11px; font-weight: 700;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.mkt-inline-plat-btn.selected                       { border-color: var(--navy); color: var(--navy); background: var(--cream); }
+.mkt-inline-plat-btn[data-p="instagram"].selected   { border-color: #e1306c; color: #e1306c; }
+.mkt-inline-plat-btn[data-p="facebook"].selected    { border-color: #1877f2; color: #1877f2; }
+.mkt-inline-plat-btn[data-p="naver_blog"].selected  { border-color: #03c75a; color: #03c75a; }
+.mkt-inline-plat-btn[data-p="kakao_story"].selected { border-color: #d4ae00; color: #d4ae00; }
+.mkt-inline-gen-btn {
+  width: 100%; padding: 12px; margin-top: 2px;
+  background: var(--navy); color: var(--cream); border: none;
+  font-family: var(--ff-body); font-size: 14px; font-weight: 700;
+  letter-spacing: .05em; cursor: pointer; transition: opacity .15s;
+}
+.mkt-inline-gen-btn:hover { opacity: .85; }
+
+/* ── SNS 안내 / 복사 버튼 ── */
+.mkt-sns-notice {
+  margin-top: 20px;
+  background: var(--paper);
+  border: 1px solid var(--tan);
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.8;
+}
+.mkt-sns-notice-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.mkt-sns-notice-row:last-of-type { margin-bottom: 12px; }
+.mkt-sns-dot       { font-size: 8px; color: var(--muted); margin-top: 4px; flex-shrink: 0; }
+.mkt-sns-dot.linked{ color: #155724; }
+.mkt-copy-btn {
+  width: 100%; padding: 9px; cursor: pointer;
+  border: 2px solid var(--navy); background: transparent;
+  font-family: var(--ff-body); font-size: 12px; font-weight: 700;
+  color: var(--navy); letter-spacing: .05em;
+  transition: background .15s, color .15s;
+}
+.mkt-copy-btn:hover { background: var(--navy); color: var(--cream); }
+
+/* ── 대시보드 블록 안내 배너 ── */
+.mkt-block-notice {
+  font-size: 11px; color: var(--muted);
+  padding: 8px 12px; margin: 12px 0;
+  background: var(--paper); border-left: 3px solid var(--tan);
+  line-height: 1.6;
+}
+
+/* ── SNS 연동 버튼 ── */
+.mmw-sns-btn {
+  padding: 7px 16px; border: 2px solid var(--navy); background: transparent;
+  font-family: var(--ff-body); font-size: 12px; font-weight: 700;
+  color: var(--navy); cursor: pointer; transition: all .15s; white-space: nowrap;
+}
+.mmw-sns-btn:hover   { background: var(--navy); color: var(--cream); }
+.mmw-sns-btn.connected {
+  border-color: #155724; color: #155724; cursor: default;
+}
+.mmw-sns-btn.connected:hover { background: transparent; color: #155724; }
+
+/* ── 페이지네이션 ── */
+.mmw-pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px; margin-top: 20px; padding-bottom: 8px;
+}
+.mmw-page-btn {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  border: 1.5px solid var(--tan); background: var(--paper);
+  font-family: var(--ff-body); font-size: 12px; font-weight: 700;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.mmw-page-btn:hover   { border-color: var(--navy); color: var(--navy); }
+.mmw-page-btn.active  { border-color: var(--navy); background: var(--navy); color: var(--cream); }
+.mmw-page-btn:disabled { opacity: .35; cursor: default; }
+.mmw-page-btn:disabled:hover { border-color: var(--tan); color: var(--muted); background: var(--paper); }
 
 /* ── 토스트 ── */
 .mkt-toast {

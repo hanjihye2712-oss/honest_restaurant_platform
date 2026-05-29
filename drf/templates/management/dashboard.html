@@ -1,0 +1,303 @@
+{% extends "management/base.html" %}
+{% load static humanize %}
+
+{% block title %}운영 현황 — 정직식당 관리자{% endblock %}
+{% block page_title %}운영 현황 대시보드{% endblock %}
+{% block mgmt_css %}<link rel="stylesheet" href="{% static 'css/management/dashboard.css' %}">{% endblock %}
+
+{% block mgmt_content %}
+
+  <!-- ── 1. 핵심 KPI 카드 ── -->
+  <div class="mgmt-kpi-grid">
+    <a class="mgmt-kpi-card mgmt-kpi-link" href="{% url 'management:users' %}">
+      <div class="mgmt-kpi-label">전체 회원</div>
+      <div class="mgmt-kpi-value">{{ total_users|intcomma }}</div>
+      <div class="mgmt-kpi-sub">사장님 {{ owner_count|intcomma }} · 손님 {{ guest_count|intcomma }}</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-link" href="{% url 'management:users' %}">
+      <div class="mgmt-kpi-label">신규 가입</div>
+      <div class="mgmt-kpi-value">{{ new_users_7d|intcomma }}</div>
+      <div class="mgmt-kpi-sub">7일 · 30일 {{ new_users_30d|intcomma }}명</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-link" href="{% url 'management:restaurants' %}">
+      <div class="mgmt-kpi-label">API 연동 식당</div>
+      <div class="mgmt-kpi-value">{{ total_restaurants|intcomma }}</div>
+      <div class="mgmt-kpi-sub">연동 {{ linked_restaurants|intcomma }} · SNS {{ sns_restaurants|intcomma }}</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-alert mgmt-kpi-link" href="/admin/honest_restaurant/restaurantownerapplication/?status=pending">
+      <div class="mgmt-kpi-label">매장 등록 신청 대기</div>
+      <div class="mgmt-kpi-value">{{ pending_applications|intcomma }}</div>
+      <div class="mgmt-kpi-sub">승인 {{ approved_applications|intcomma }} · 거절 {{ rejected_applications|intcomma }}</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-link" href="/admin/interactions/review/">
+      <div class="mgmt-kpi-label">전체 리뷰</div>
+      <div class="mgmt-kpi-value">{{ total_reviews|intcomma }}</div>
+      <div class="mgmt-kpi-sub">최근 7일 {{ reviews_7d|intcomma }}건</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-warn mgmt-kpi-link" href="{% url 'management:ai' %}">
+      <div class="mgmt-kpi-label">허위 리뷰 탐지</div>
+      <div class="mgmt-kpi-value">{{ fake_count|intcomma }}</div>
+      <div class="mgmt-kpi-sub">분석 대기 {{ fake_pending|intcomma }}건</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-alert mgmt-kpi-link" href="{% url 'management:ai' %}">
+      <div class="mgmt-kpi-label">위생 경고 식당</div>
+      <div class="mgmt-kpi-value">{{ hygiene_alert_count|intcomma }}</div>
+      <div class="mgmt-kpi-sub">골목장인 {{ alley_total|intcomma }}곳</div>
+    </a>
+    <a class="mgmt-kpi-card mgmt-kpi-warn mgmt-kpi-link" href="{% url 'management:receipts' %}">
+      <div class="mgmt-kpi-label">영수증 인증 대기</div>
+      <div class="mgmt-kpi-value">{{ receipt_pending|intcomma }}</div>
+      <div class="mgmt-kpi-sub">완료 {{ receipt_approved|intcomma }} · 거부 {{ receipt_rejected|intcomma }}</div>
+    </a>
+  </div>
+
+  <!-- ── 2. 신규 가입 추이 + AI 레벨 분포 ── -->
+  <div class="mgmt-chart-row">
+    <div class="mgmt-section mgmt-chart-section">
+      <div class="mgmt-section-title">신규 가입 추이 <span class="mgmt-section-sub">최근 7일</span></div>
+      <div class="mgmt-chart-wrap">
+        <canvas id="mgmt-signup-chart" height="80"></canvas>
+      </div>
+    </div>
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">AI 신뢰 레벨 분포 <span class="mgmt-section-sub">ai_net_score 기준</span></div>
+      <div class="mgmt-level-grid">
+        <div class="mgmt-level-card lv1">
+          <div class="mgmt-level-name">LV 1 <span>위험</span></div>
+          <div class="mgmt-level-val">{{ score_lv.lv1|intcomma }}</div>
+          <div class="mgmt-level-desc">순점수 0 미만</div>
+        </div>
+        <div class="mgmt-level-card lv2">
+          <div class="mgmt-level-name">LV 2 <span>일반</span></div>
+          <div class="mgmt-level-val">{{ score_lv.lv2|intcomma }}</div>
+          <div class="mgmt-level-desc">0 ~ 29점</div>
+        </div>
+        <div class="mgmt-level-card lv3">
+          <div class="mgmt-level-name">LV 3 <span>우수</span></div>
+          <div class="mgmt-level-val">{{ score_lv.lv3|intcomma }}</div>
+          <div class="mgmt-level-desc">30 ~ 59점</div>
+        </div>
+        <div class="mgmt-level-card lv4">
+          <div class="mgmt-level-name">LV 4 <span>최우수</span></div>
+          <div class="mgmt-level-val">{{ score_lv.lv4|intcomma }}</div>
+          <div class="mgmt-level-desc">60점 이상</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mgmt-grid">
+
+    <!-- ── 3. 매장 등록 신청 현황 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">매장 등록 신청 현황</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini pending">대기 {{ pending_applications|intcomma }}</span>
+        <span class="mgmt-mini done">승인 {{ approved_applications|intcomma }}</span>
+        <span class="mgmt-mini failed">거절 {{ rejected_applications|intcomma }}</span>
+      </div>
+      <table class="mgmt-table">
+        <thead><tr><th>신청자</th><th>식당명</th><th>신청일</th><th>상태</th></tr></thead>
+        <tbody>
+          {% for app in recent_applications %}
+          <tr>
+            <td>{{ app.user.username }}</td>
+            <td>{{ app.restaurant.name }}</td>
+            <td>{{ app.applied_at|date:"m/d H:i" }}</td>
+            <td><span class="mgmt-badge {{ app.status }}">{{ app.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="mgmt-empty">신청 내역이 없습니다.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="/admin/honest_restaurant/restaurantownerapplication/" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 4. 최근 리뷰 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">최근 리뷰</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini neutral">전체 {{ total_reviews|intcomma }}</span>
+        <span class="mgmt-mini done">7일 {{ reviews_7d|intcomma }}건</span>
+      </div>
+      <table class="mgmt-table">
+        <thead><tr><th>작성자</th><th>식당명</th><th>리뷰 (앞 30자)</th><th>작성일</th></tr></thead>
+        <tbody>
+          {% for rv in recent_reviews %}
+          <tr>
+            <td>{{ rv.user.username }}</td>
+            <td>{{ rv.restaurant.name }}</td>
+            <td class="mgmt-td-ellipsis">{{ rv.content|truncatechars:30 }}</td>
+            <td>{{ rv.created_at|date:"m/d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="mgmt-empty">리뷰 없음</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="/admin/interactions/review/" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 5. 허위 리뷰 탐지 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">허위 리뷰 탐지</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini failed">허위 의심 {{ fake_count|intcomma }}</span>
+        <span class="mgmt-mini pending">분석 대기 {{ fake_pending|intcomma }}</span>
+        <span class="mgmt-mini done">분석 완료 {{ fake_done|intcomma }}</span>
+        <span class="mgmt-mini neutral">전체 {{ fake_total|intcomma }}</span>
+      </div>
+      <table class="mgmt-table">
+        <thead><tr><th>작성자</th><th>식당명</th><th>신뢰도</th><th>분석일</th></tr></thead>
+        <tbody>
+          {% for fr in recent_fakes %}
+          <tr>
+            <td>{{ fr.review.user.username }}</td>
+            <td>{{ fr.review.restaurant.name }}</td>
+            <td>{{ fr.confidence|floatformat:2 }}</td>
+            <td>{{ fr.analyzed_at|date:"m/d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="mgmt-empty">탐지된 허위 리뷰 없음</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'management:ai' %}" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 6. 영수증 인증 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">영수증 인증</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini pending">대기 {{ receipt_pending|intcomma }}</span>
+        <span class="mgmt-mini done">승인 {{ receipt_approved|intcomma }}</span>
+        <span class="mgmt-mini failed">거부 {{ receipt_rejected|intcomma }}</span>
+        <span class="mgmt-mini neutral">전체 {{ receipt_total|intcomma }}</span>
+      </div>
+      <table class="mgmt-table">
+        <thead><tr><th>신청자</th><th>식당명</th><th>가격일치율</th><th>신청일</th><th>상태</th></tr></thead>
+        <tbody>
+          {% for rc in recent_receipts %}
+          <tr>
+            <td>{{ rc.user.username }}</td>
+            <td>{{ rc.restaurant.name }}</td>
+            <td>{% if rc.price_match_rate is not None %}{% widthratio rc.price_match_rate 1 100 %}%{% else %}<span style="color:var(--muted)">—</span>{% endif %}</td>
+            <td>{{ rc.submitted_at|date:"m/d H:i" }}</td>
+            <td><span class="mgmt-badge {{ rc.status }}">{{ rc.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="mgmt-empty">인증 내역 없음</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'management:receipts' %}" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 7. 위생 경고 식당 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">위생 경고 식당 <span class="mgmt-section-sub">최근 14일 기준</span></div>
+      <table class="mgmt-table">
+        <thead><tr><th>식당명</th><th>위생 부정 비율</th><th>AI 순점수</th><th>골목장인</th></tr></thead>
+        <tbody>
+          {% for ap in hygiene_alert_list %}
+          <tr>
+            <td>{{ ap.restaurant.name }}</td>
+            <td>{{ ap.recent_hygiene_negative_ratio|floatformat:1 }}%</td>
+            <td>{{ ap.ai_net_score }}</td>
+            <td>{% if ap.is_alley_eligible %}✓{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="mgmt-empty">위생 경고 없음</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'management:ai' %}" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 8. AI 리뷰 분류 + 리포트 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">AI 리뷰 분류</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini done">완료 {{ cls_done|intcomma }}</span>
+        <span class="mgmt-mini pending">대기 {{ cls_pending|intcomma }}</span>
+        <span class="mgmt-mini failed">실패 {{ cls_failed|intcomma }}</span>
+      </div>
+      <div class="mgmt-section-title" style="margin-top:18px;">AI 리포트</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini done">완료 {{ report_done|intcomma }}</span>
+        <span class="mgmt-mini pending">대기 {{ report_pending|intcomma }}</span>
+        <span class="mgmt-mini failed">실패 {{ report_failed|intcomma }}</span>
+      </div>
+      <table class="mgmt-table" style="margin-top:8px;">
+        <thead><tr><th>식당명</th><th>기간</th><th>상태</th></tr></thead>
+        <tbody>
+          {% for r in recent_reports %}
+          <tr>
+            <td>{{ r.restaurant.name }}</td>
+            <td>{{ r.period_end|date:"m/d" }}</td>
+            <td><span class="mgmt-badge {{ r.status }}">{{ r.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" class="mgmt-empty">리포트 없음</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'management:ai' %}" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 9. AI 마케팅 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">AI 마케팅</div>
+      <div class="mgmt-mini-stats">
+        <span class="mgmt-mini done">발행 {{ mkt_published|intcomma }}</span>
+        <span class="mgmt-mini pending">예약 {{ mkt_scheduled|intcomma }}</span>
+        <span class="mgmt-mini neutral">임시저장 {{ mkt_draft|intcomma }}</span>
+        <span class="mgmt-mini neutral">7일 {{ mkt_7d|intcomma }}건</span>
+      </div>
+      <table class="mgmt-table">
+        <thead><tr><th>식당명</th><th>플랫폼</th><th>작성일</th><th>상태</th></tr></thead>
+        <tbody>
+          {% for p in recent_posts %}
+          <tr>
+            <td>{{ p.restaurant.name }}</td>
+            <td>{{ p.platform }}</td>
+            <td>{{ p.created_at|date:"m/d H:i" }}</td>
+            <td><span class="mgmt-badge {{ p.status }}">{{ p.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="mgmt-empty">글 없음</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a href="{% url 'management:marketing' %}" class="mgmt-more">전체 보기 →</a>
+    </div>
+
+    <!-- ── 10. 빠른 이동 ── -->
+    <div class="mgmt-section">
+      <div class="mgmt-section-title">빠른 이동</div>
+      <div class="mgmt-quick-links">
+        <a href="/admin/honest_restaurant/restaurantownerapplication/?status=pending" class="mgmt-quick-btn">매장 신청 승인</a>
+        <a href="{% url 'management:receipts' %}" class="mgmt-quick-btn">영수증 인증 검토</a>
+        <a href="{% url 'management:ai' %}" class="mgmt-quick-btn">허위 리뷰 관리</a>
+        <a href="{% url 'management:ai' %}" class="mgmt-quick-btn">위생 경고 관리</a>
+        <a href="{% url 'management:restaurants' %}" class="mgmt-quick-btn">식당 관리</a>
+        <a href="{% url 'management:users' %}" class="mgmt-quick-btn">회원 관리</a>
+        <a href="/admin/marketing/marketingaiconfig/" class="mgmt-quick-btn">AI 마케팅 설정</a>
+        <a href="/admin/ai_report/aireportconfig/" class="mgmt-quick-btn">AI 리포트 설정</a>
+        <a href="/admin/marketing/marketingplatformconfig/" class="mgmt-quick-btn">플랫폼 설정</a>
+        <a href="/admin/ai_review_classifier/reviewclassificationresult/" class="mgmt-quick-btn">리뷰 분류 전체</a>
+      </div>
+    </div>
+
+  </div>
+
+{% endblock %}
+
+{% block mgmt_js %}
+<script id="mgmt-signup-data"
+  data-labels="{{ signup_labels|join:',' }}"
+  data-values="{{ signup_data|join:',' }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/management/dashboard.js' %}"></script>
+{% endblock %}

@@ -117,12 +117,18 @@ class RestaurantAIProfile(models.Model):
     recent_hygiene_negative_ratio = models.FloatField(default=0.0, verbose_name="최근 14일 위생 부정 비율")
     hygiene_alert                 = models.BooleanField(default=False, db_index=True, verbose_name="위생 경고")
 
+    # 가격일치율 (레벨화 기준 20점)
+    price_match_rate  = models.FloatField(default=1.0, verbose_name="가격 일치율 (0~1)")
+    price_match_score = models.IntegerField(default=0, verbose_name="가격일치율 점수 (0/10/15/20)")
+    receipt_ocr_count = models.IntegerField(default=0, verbose_name="OCR 분석된 영수증 수")
+    price_is_verified = models.BooleanField(default=False, verbose_name="가격 검증 충분 여부 (30건 이상)")
+
     # 메타
     review_count_analyzed = models.IntegerField(default=0, verbose_name="집계 기준 리뷰 수")
     last_calculated_at    = models.DateTimeField(null=True, blank=True, verbose_name="최종 집계 시각")
 
     def __str__(self):
-        badge = " 🏅골목장인" if self.is_alley_eligible else ""
+        badge = " 🍀골목장인" if self.is_alley_eligible else ""
         alert = " ⚠️위생경고" if self.hygiene_alert    else ""
         return f"{self.restaurant.name}{badge}{alert} (AI {self.ai_net_score:+d}점)"
 

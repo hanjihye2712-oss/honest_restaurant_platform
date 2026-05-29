@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}{{ title }} | 정직순대국{% endblock %}
 
@@ -13,7 +13,6 @@
 
   <!-- 헤더 -->
   <div class="detail-header">
-    <a class="detail-back" href="/dashboard/">← 대시보드</a>
     <h2>{{ title }}</h2>
   </div>
 
@@ -22,7 +21,7 @@
     <div class="dkpi-box dkpi-box--full">
       <span class="dkpi-label">{{ month_label }} 매출</span>
       <div class="dkpi-value-row">
-        <span class="dkpi-value">{{ total_rev }}원</span>
+        <span class="dkpi-value">{{ total_rev|intcomma }}원</span>
         {% if change_str %}
           <span class="dkpi-change {% if change_up %}change-up{% else %}change-down{% endif %}">{{ change_str }}</span>
         {% endif %}
@@ -84,8 +83,7 @@
 
 <!-- JS 데이터 전달 -->
 <script id="monthly-menu-data" type="application/json">{{ monthly_menu_json|safe }}</script>
-<script id="rev-2025-data"     type="application/json">{{ rev_2025_json|safe }}</script>
-<script id="rev-2026-data"     type="application/json">{{ rev_2026_json|safe }}</script>
+<script id="rev-by-year-data"   type="application/json">{{ rev_by_year_json|safe }}</script>
 <script id="chart-data"        type="application/json">
   {"labels": {{ chart_labels_json|safe }}, "data": {{ chart_data_json|safe }}}
 </script>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}식당 목록 | 정직식당{% endblock %}
 
@@ -135,7 +135,7 @@
     <script id="restaurant-geo-data" type="application/json">{{ geo_data_json|safe }}</script>
 
     <div class="result-meta">
-      총 <strong>{{ total_count }}</strong>개 식당
+      총 <strong>{{ total_count|intcomma }}</strong>개 식당
     </div>
 
     {% if restaurants %}
@@ -162,6 +162,16 @@
                 <a href="{% url 'public_restaurants:restaurant-detail-page' r.pk %}" class="restaurant-name-link">
                   <div class="restaurant-name-row">
                     <span class="restaurant-name">{{ r.name }}</span>
+                    <span class="trust-emojis">
+                      {% if r.trust_level == 1 %}<span class="emoji-tip" data-tip="LV1 마스터 신뢰 가게">🏆</span>
+                      {% elif r.trust_level == 2 %}<span class="emoji-tip" data-tip="LV2 우수 신뢰 가게">🌺🌺</span>
+                      {% elif r.trust_level == 3 %}<span class="emoji-tip" data-tip="LV3 신뢰 가게">🌺</span>
+                      {% else %}<span class="emoji-tip" data-tip="LV4 탐색 중">⏳</span>
+                      {% endif %}
+                      {% if r.badge_alley %}<span class="emoji-tip" data-tip="골목장인">🍀</span>{% endif %}
+                      {% if r.badge_rookie %}<span class="emoji-tip" data-tip="신상 가게">🌱</span>{% endif %}
+                      {% if r.badge_trending %}<span class="emoji-tip" data-tip="인기급상승">🔥</span>{% endif %}
+                    </span>
                   </div>
                 </a>
 
@@ -200,7 +210,7 @@
               <td class="col-phone">{{ r.phone|default:"-" }}</td>
 
               <td class="col-bookmark">
-                {% if r.bookmark_count %}♥ {{ r.bookmark_count }}{% else %}-{% endif %}
+                {% if r.bookmark_count %}♥ {{ r.bookmark_count|intcomma }}{% else %}-{% endif %}
               </td>
             </tr>
             {% endfor %}

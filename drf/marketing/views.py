@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from honest_restaurant.models import PublicRestaurantData
+from .ai_service import generate_marketing_content, get_active_platforms
+from .context_service import get_today_context
 from .models import MarketingPost
 from .serializers import GenerateRequestSerializer, MarketingPostSerializer, PublishRequestSerializer
 
@@ -52,7 +54,7 @@ class MarketingPostViewSet(
 
     @action(detail=False, methods=['post'], url_path='generate')
     def generate(self, request):
-        """키워드/문장 → AI 글 생성 → draft 상태로 저장"""
+        """키워드/문장 + 오늘의 날씨·기념일·뉴스 → Gemini AI 글 생성 → draft 저장"""
         serializer = GenerateRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -62,8 +64,23 @@ class MarketingPostViewSet(
         except PublicRestaurantData.DoesNotExist:
             return Response({'detail': '식당을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # TODO: FastAPI AI 게이트웨이 httpx 호출로 교체
-        generated = self._call_ai_gateway(restaurant, data['input_prompt'], data['platform'])
+        try:
+            context   = get_today_context()
+            generated = generate_marketing_content(
+                restaurant,
+                data['input_prompt'],
+                data['platform'],
+                context,
+            )
+        except Exception as e:
+            err_str = str(e)
+            if '429' in err_str or 'RESOURCE_EXHAUSTED' in err_str:
+                msg = 'AI 요청이 너무 많습니다. 잠시 후 다시 시도해주세요. (약 1분 후)'
+            elif '401' in err_str or 'API_KEY' in err_str:
+                msg = 'AI API 키가 유효하지 않습니다. 관리자에게 문의해주세요.'
+            else:
+                msg = 'AI 글 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'
+            return Response({'detail': msg}, status=status.HTTP_502_BAD_GATEWAY)
 
         post = MarketingPost.objects.create(
             owner=request.user,
@@ -108,15 +125,16 @@ class MarketingPostViewSet(
             'post': MarketingPostSerializer(post).data,
         })
 
-    def _call_ai_gateway(self, restaurant, input_prompt, platform):
-        """FastAPI AI 게이트웨이 호출 자리 (추후 httpx로 교체)"""
-        return {
-            'content': f"[AI 생성 예정] {restaurant.name} — {input_prompt}",
-            'hashtags': [f'#{restaurant.province}맛집', f'#{restaurant.name}'],
-        }
-
 
 class MarketingManagePageView(LoginRequiredMixin, TemplateView):
     """GET /marketing/manage/ — 마케팅 글 관리 페이지"""
     template_name = 'marketing/marketing_manage.html'
     login_url     = '/accounts/login/'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        restaurant = getattr(self.request.user, 'owned_restaurant', None)
+        ctx['restaurant']       = restaurant
+        ctx['active_platforms'] = get_active_platforms()
+        ctx['sns_connected']    = bool(restaurant and restaurant.sns_connected)
+        return ctx

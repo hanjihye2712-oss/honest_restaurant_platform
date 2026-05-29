@@ -1,4 +1,4 @@
-{% load static %}
+{% load static humanize %}
 <link rel="stylesheet" href="{% static 'css/interactions/review.css' %}">
 
 <section class="review-section" id="review-section"
@@ -6,7 +6,7 @@
 
   <!-- 헤더 -->
   <div class="review-header-row">
-    <h3 class="review-title">리뷰 <span class="review-count">{{ reviews.count }}</span></h3>
+    <h3 class="review-title">리뷰 <span class="review-count">{{ review_total|intcomma }}</span></h3>
     <div class="review-sort-btns">
       <a href="?sort=latest"
          class="review-sort-btn {% if sort == 'latest' %}active{% endif %}">최신순</a>
@@ -17,8 +17,16 @@
     </div>
   </div>
 
+  <!-- ── 내 가게 ── -->
+  {% if is_my_restaurant %}
+  <div class="review-locked-box">
+    <div class="review-locked-inner" style="justify-content:center;text-align:center;">
+      <span>내 가게에는 리뷰를 작성할 수 없습니다.</span>
+    </div>
+  </div>
+
   <!-- ── 비로그인 ── -->
-  {% if not request.user.is_authenticated %}
+  {% elif not request.user.is_authenticated %}
   <div class="review-locked-box">
     <div class="review-locked-inner">
       <span class="review-lock-icon">🔒</span>
@@ -51,7 +59,16 @@
     <textarea id="review-content" rows="4"
               placeholder="이 가게에 대한 솔직한 리뷰를 남겨주세요."></textarea>
     <span class="review-error" id="content-error" style="display:none;">내용을 입력해주세요.</span>
+
+    <!-- 이미지 미리보기 스트립 (이미지 선택 시 표시) -->
+    <div id="review-image-previews" class="review-image-previews"></div>
+
+    <!-- 액션 행: 왼쪽 사진첨부 / 오른쪽 리뷰등록 -->
     <div class="review-form-actions">
+      <label class="review-image-label" for="review-image-input">
+        📷 사진 첨부 <span class="review-image-hint">(선택·최대 3장)</span>
+      </label>
+      <input type="file" id="review-image-input" accept="image/*" multiple style="display:none;">
       <button type="button" class="btn-verify" id="btn-review-submit">리뷰 등록</button>
     </div>
   </div>
@@ -94,6 +111,19 @@
           <span class="review-date">{{ review.created_at|date:"Y.m.d" }}</span>
         </div>
         <p class="review-content">{{ review.content }}</p>
+        {% if review.image or review.image_2 or review.image_3 %}
+        <div class="review-img-wrap">
+          {% if review.image %}
+          <img src="{{ review.image.url }}" alt="리뷰 이미지" class="review-img">
+          {% endif %}
+          {% if review.image_2 %}
+          <img src="{{ review.image_2.url }}" alt="리뷰 이미지" class="review-img">
+          {% endif %}
+          {% if review.image_3 %}
+          <img src="{{ review.image_3.url }}" alt="리뷰 이미지" class="review-img">
+          {% endif %}
+        </div>
+        {% endif %}
       </div>
 
       <!-- 수정 박스 (기본 숨김) -->
@@ -107,14 +137,54 @@
                data-current-score="{{ review.user_score|default:0 }}"></div>
         </div>
         <textarea id="edit-content-{{ review.id }}" rows="3">{{ review.content }}</textarea>
-        <div class="review-edit-actions">
-          <button type="button" class="btn-verify"
-                  style="font-size:14px;padding:8px 20px;"
-                  data-action="update"
-                  data-review-id="{{ review.id }}">저장</button>
-          <button type="button" class="btn-delete"
-                  data-action="cancel-edit"
-                  data-review-id="{{ review.id }}">취소</button>
+
+        <!-- 현재 이미지들 -->
+        <div class="review-edit-current-imgs" id="edit-current-imgs-{{ review.id }}">
+          {% if review.image %}
+          <div class="review-edit-cur-img-item">
+            <img src="{{ review.image.url }}" alt="현재 이미지 1" class="review-img-thumb">
+            <label class="review-img-delete-label">
+              <input type="checkbox" id="edit-image-clear-{{ review.id }}-1"> 삭제
+            </label>
+          </div>
+          {% endif %}
+          {% if review.image_2 %}
+          <div class="review-edit-cur-img-item">
+            <img src="{{ review.image_2.url }}" alt="현재 이미지 2" class="review-img-thumb">
+            <label class="review-img-delete-label">
+              <input type="checkbox" id="edit-image-clear-{{ review.id }}-2"> 삭제
+            </label>
+          </div>
+          {% endif %}
+          {% if review.image_3 %}
+          <div class="review-edit-cur-img-item">
+            <img src="{{ review.image_3.url }}" alt="현재 이미지 3" class="review-img-thumb">
+            <label class="review-img-delete-label">
+              <input type="checkbox" id="edit-image-clear-{{ review.id }}-3"> 삭제
+            </label>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- 새 이미지 미리보기 -->
+        <div id="edit-image-previews-{{ review.id }}" class="review-image-previews"></div>
+
+        <!-- 수정 폼 액션 행 -->
+        <div class="review-form-actions" style="margin-top:8px;">
+          <label class="review-image-label" for="edit-image-{{ review.id }}">
+            📷 {% if review.image or review.image_2 or review.image_3 %}사진 추가{% else %}사진 첨부{% endif %}
+            <span class="review-image-hint">(선택)</span>
+          </label>
+          <input type="file" id="edit-image-{{ review.id }}" accept="image/*" multiple style="display:none;">
+          <div class="review-edit-actions-right">
+            <button type="button" class="btn-verify"
+                    style="font-size:14px;padding:8px 20px;"
+                    data-action="update"
+                    data-review-id="{{ review.id }}">저장</button>
+            <button type="button" class="btn-delete"
+                    data-action="cancel-edit"
+                    data-review-id="{{ review.id }}">취소</button>
+          </div>
         </div>
       </div>
       {% endif %}
@@ -124,6 +194,33 @@
   </ul>
   {% else %}
   <p class="review-empty">아직 작성된 리뷰가 없습니다. 첫 번째 리뷰를 남겨보세요.</p>
+  {% endif %}
+
+  <!-- ── 페이지네이션 ── -->
+  {% if reviews.paginator.num_pages > 1 %}
+  <nav class="pagination" aria-label="리뷰 페이지">
+    {% if reviews.has_previous %}
+    <a class="page-btn" href="?sort={{ sort }}&page={{ reviews.previous_page_number }}">&lsaquo;</a>
+    {% else %}
+    <span class="page-btn disabled">&lsaquo;</span>
+    {% endif %}
+
+    {% for p in review_pg_nums %}
+      {% if p is None %}
+      <span class="page-ellipsis">…</span>
+      {% elif p == page_num %}
+      <span class="page-btn current">{{ p }}</span>
+      {% else %}
+      <a class="page-btn" href="?sort={{ sort }}&page={{ p }}">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if reviews.has_next %}
+    <a class="page-btn" href="?sort={{ sort }}&page={{ reviews.next_page_number }}">&rsaquo;</a>
+    {% else %}
+    <span class="page-btn disabled">&rsaquo;</span>
+    {% endif %}
+  </nav>
   {% endif %}
 
 </section>

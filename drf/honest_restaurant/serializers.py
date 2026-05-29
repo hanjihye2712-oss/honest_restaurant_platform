@@ -110,6 +110,7 @@ class PublicRestaurantDataDetailSerializer(PublicRestaurantDataSerializer):
     reviews = serializers.SerializerMethodField()
 
     def get_reviews(self, obj):
+        # interactions.serializers가 이 파일을 import하므로 최상단에 두면 순환 import 발생
         from interactions.serializers import ReviewSerializer
         qs = obj.interaction_reviews.select_related("user").order_by("-created_at")
         return ReviewSerializer(qs, many=True).data

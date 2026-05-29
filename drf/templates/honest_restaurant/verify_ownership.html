@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}사업자 인증 | 정직식당{% endblock %}
+
+{% block content %}
+<div class="reg-wrap">
+
+  <!-- 단계 헤더 -->
+  <div class="reg-hero">
+    <h1 class="reg-hero-title">사업자 인증</h1>
+    <p class="reg-hero-sub">
+      <strong style="color:var(--navy)">{{ restaurant.name }}</strong>의 사업자등록번호로 국세청에서 자동으로 확인합니다.<br>
+      사업자등록번호 또는 사업자등록증 사진으로 간편하게 인증하세요.
+    </p>
+    <div class="reg-steps">
+      <div class="reg-step done"><div class="rs-circle">✓</div><div class="rs-label">회원가입</div></div>
+      <div class="reg-step-line done"></div>
+      <div class="reg-step done"><div class="rs-circle">✓</div><div class="rs-label">로그인</div></div>
+      <div class="reg-step-line done"></div>
+      <div class="reg-step done"><div class="rs-circle">✓</div><div class="rs-label">우리 가게 선택</div></div>
+      <div class="reg-step-line active"></div>
+      <div class="reg-step active"><div class="rs-circle">4</div><div class="rs-label">사업자 인증</div></div>
+      <div class="reg-step-line"></div>
+      <div class="reg-step"><div class="rs-circle">5</div><div class="rs-label">AI 대시보드 이용</div></div>
+    </div>
+  </div>
+
+  <!-- 선택된 가게 요약 -->
+  <div class="vo-restaurant-box">
+    <div class="vo-rb-label">인증할 가게</div>
+    <div class="vo-rb-name">{{ restaurant.name }}</div>
+    <div class="vo-rb-meta">
+      {% if restaurant.address_road %}📍 {{ restaurant.address_road }}{% endif %}
+      {% if restaurant.business_type %} · {{ restaurant.business_type }}{% endif %}
+    </div>
+    <a href="{% url 'public_restaurants:register-restaurant' %}" class="vo-rb-change">가게 다시 선택 →</a>
+  </div>
+
+  <!-- ════ 업로드 성공 상태 ════ -->
+  {% if upload_success %}
+  <div class="vo-result-box success">
+    <div class="vo-result-icon">📋</div>
+    <div class="vo-result-title">신청이 접수되었습니다</div>
+    <p class="vo-result-sub">
+      관리자가 사업자등록증을 검토한 후 승인합니다.<br>
+      보통 <strong>1~2 영업일</strong> 내에 처리되며, 승인 시 즉시 매장 대시보드를 이용하실 수 있습니다.
+    </p>
+    <a href="/" class="vo-btn-home">홈으로 돌아가기</a>
+  </div>
+
+  <!-- ════ 국세청 API 인증 폼 + (실패 시) 업로드 폼 ════ -->
+  {% else %}
+
+  <!-- ① 사업자등록번호 입력 -->
+  {% if not show_upload %}
+  <div class="vo-card">
+    <div class="vo-card-head">
+      <span class="vo-step-num">1</span>
+      <div>
+        <div class="vo-card-title">사업자등록번호로 자동 인증</div>
+        <div class="vo-card-sub">국세청에서 실시간으로 사업자 상태를 확인합니다</div>
+      </div>
+    </div>
+
+    {% if verify_error %}
+    <div class="vo-error-box">
+      <strong>⚠️ 인증 실패</strong> — {{ verify_error }}
+    </div>
+    {% endif %}
+
+    <form method="post" class="vo-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="verify">
+      <label class="vo-label">사업자등록번호</label>
+      <div class="vo-input-row">
+        <input
+          type="text"
+          name="business_number"
+          value="{{ business_number|default:'' }}"
+          placeholder="예: 123-45-67890"
+          maxlength="12"
+          class="vo-input"
+          autofocus
+        >
+        <button type="submit" class="vo-btn-primary">국세청 자동 확인</button>
+      </div>
+      <p class="vo-hint">사업자등록증에 있는 10자리 번호를 입력하세요 (하이픈 포함/미포함 모두 가능)</p>
+    </form>
+
+    <div class="vo-divider">
+      <span>또는</span>
+    </div>
+
+    <div class="vo-alt">
+      <p class="vo-alt-text">사업자등록번호가 없거나 자동 인증이 어려우신가요?</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload">
+        <button type="submit" class="vo-btn-secondary">
+          사업자등록증 사진으로 신청하기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {% endif %}
+
+  <!-- ② 사업자등록증 업로드 (show_upload=True 또는 자동 전환) -->
+  {% if show_upload %}
+  <div class="vo-card">
+    <div class="vo-card-head">
+      <span class="vo-step-num" style="background:var(--tan);color:var(--navy)">2</span>
+      <div>
+        <div class="vo-card-title">사업자등록증으로 수동 신청</div>
+        <div class="vo-card-sub">관리자가 직접 확인 후 1~2 영업일 내 승인</div>
+      </div>
+    </div>
+
+    {% if verify_error %}
+    <div class="vo-error-box">
+      <strong>⚠️ 자동 인증 실패</strong> — {{ verify_error }}<br>
+      <small>아래에서 사업자등록증으로 신청하시면 관리자가 검토합니다.</small>
+    </div>
+    {% endif %}
+
+    {% if upload_error %}
+    <div class="vo-error-box">{{ upload_error }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="vo-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="upload">
+      <input type="hidden" name="business_number" value="{{ business_number|default:'' }}">
+
+      <label class="vo-label">사업자등록번호 (선택)</label>
+      <input
+        type="text"
+        name="business_number"
+        value="{{ business_number|default:'' }}"
+        placeholder="123-45-67890"
+        maxlength="12"
+        class="vo-input"
+        style="margin-bottom:16px"
+      >
+
+      <label class="vo-label">사업자등록증 사진 <span style="color:var(--red)">*</span></label>
+      <div class="vo-file-area" id="fileArea">
+        <input type="file" name="cert_image" id="certImage" accept="image/*" class="vo-file-input" required>
+        <label for="certImage" class="vo-file-label">
+          <span class="vo-file-icon">📄</span>
+          <span id="fileNameDisplay">사진을 선택하거나 여기에 드래그하세요</span>
+          <span class="vo-file-hint">JPG, PNG, HEIC · 최대 10MB</span>
+        </label>
+      </div>
+
+      <button type="submit" class="vo-btn-primary" style="width:100%;margin-top:20px">검토 신청하기</button>
+    </form>
+
+    <div class="vo-divider"><span>또는</span></div>
+    <div class="vo-alt">
+      <a href="{% url 'public_restaurants:verify-ownership' restaurant.pk %}" class="vo-btn-secondary">
+        사업자등록번호로 다시 시도
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}{# /upload_success #}
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/honest_restaurant/verify_ownership.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/honest_restaurant/verify_ownership.js' %}"></script>
+{% endblock %}

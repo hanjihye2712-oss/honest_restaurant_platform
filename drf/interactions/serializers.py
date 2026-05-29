@@ -38,7 +38,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         model  = Review
         fields = [
             "id", "restaurant", "restaurant_name", "username",
-            "content", "sentiment", "fake_review", "review_classification",
+            "content", "image", "image_2", "image_3",
+            "sentiment", "fake_review", "review_classification",
             "created_at", "updated_at",
         ]
         read_only_fields = ["created_at", "updated_at"]

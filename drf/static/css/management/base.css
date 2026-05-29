@@ -1,0 +1,116 @@
+/*
+ * management/base.css
+ * ===================
+ * 레이아웃 전용 — 사이드바, 메인 영역, 헤더
+ * 모든 관리자 페이지가 공통으로 사용한다.
+ */
+
+/* ── 전체 레이아웃 ── */
+.mgmt-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── 사이드바 ── */
+.mgmt-sidebar {
+  width: 160px;
+  flex-shrink: 0;
+  background: #0f1d3c;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0 40px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.mgmt-sb-label {
+  font-size: 9px;
+  color: #3a5070;
+  letter-spacing: .18em;
+  padding: 0 20px 10px;
+  font-weight: 700;
+}
+
+.mgmt-sb-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.mgmt-sb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  font-size: 13px;
+  color: #7a9ab8;
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  font-weight: 500;
+  transition: background .15s, color .15s;
+}
+.mgmt-sb-item:hover {
+  background: rgba(255,255,255,.05);
+  color: #c8d8e8;
+}
+.mgmt-sb-item.active {
+  background: rgba(200,169,110,.12);
+  color: #c8a96e;
+  border-left-color: #c8a96e;
+  font-weight: 700;
+}
+
+.mgmt-sb-icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+}
+
+/* ── 메인 콘텐츠 영역 ── */
+.mgmt-main {
+  flex: 1;
+  min-width: 0;
+  padding: 36px 40px 60px;
+}
+
+/* ── 페이지 헤더 ── */
+.mgmt-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.mgmt-title {
+  font-family: var(--ff-deco);
+  font-size: 22px;
+  color: var(--navy);
+}
+
+.mgmt-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.mgmt-header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.mgmt-clock {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .03em;
+}
+
+.mgmt-admin-link {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-decoration: none;
+}
+.mgmt-admin-link:hover { color: var(--navy); }

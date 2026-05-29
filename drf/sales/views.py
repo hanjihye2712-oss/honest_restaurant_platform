@@ -31,6 +31,12 @@ from honest_restaurant.models import PublicRestaurantData
 
 from .models import ManagedRestaurant, SaleItem, SaleRecord
 
+_TOSS_CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm"
+
+
+def _managed_admin_url(pk: int) -> str:
+    return f"/admin/sales/managedrestaurant/{pk}/change/"
+
 
 # ══════════════════════════════════════════════════════════════
 # 결제 페이지
@@ -60,7 +66,7 @@ class SuccessView(View):
         ).decode()
 
         resp = requests.post(
-            'https://api.tosspayments.com/v1/payments/confirm',
+            _TOSS_CONFIRM_URL,
             json={'paymentKey': payment_key, 'orderId': order_id, 'amount': amount},
             headers={
                 'Authorization': f'Basic {auth}',
@@ -69,7 +75,7 @@ class SuccessView(View):
         )
 
         if resp.status_code == 200:
-            SaleRecord.objects.filter(order_id=order_id).update(status='DONE')
+            SaleRecord.objects.filter(order_id=order_id).update(status=SaleRecord.STATUS_DONE)
             return render(request, 'sales/success.html', {
                 'order_id':    order_id,
                 'amount':      f"{int(amount):,}",
@@ -104,19 +110,30 @@ class FailView(TemplateView):
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateOrderAPIView(View):
     def post(self, request):
-        data  = json.loads(request.body)
-        order = SaleRecord.objects.create(
-            order_id=data['orderId'],
-            amount=data['amount'],
-            status='READY',
-        )
-        for item in data.get('items', []):
-            SaleItem.objects.create(
-                sale_record=order,
-                menu_name=item['name'],
-                quantity=item['qty'],
-                price=item['price'],
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({'status': 'error', 'message': '잘못된 요청 형식입니다.'}, status=400)
+
+        try:
+            order = SaleRecord.objects.create(
+                order_id=data['orderId'],
+                amount=data['amount'],
+                status=SaleRecord.STATUS_READY,
             )
+        except KeyError as e:
+            return JsonResponse({'status': 'error', 'message': f'필수 항목 누락: {e}'}, status=400)
+
+        for item in data.get('items', []):
+            try:
+                SaleItem.objects.create(
+                    sale_record=order,
+                    menu_name=item['name'],
+                    quantity=item['qty'],
+                    price=item['price'],
+                )
+            except KeyError:
+                pass
         return JsonResponse({'status': 'success'})
 
 
@@ -131,10 +148,10 @@ class TossWebhookView(View):
             data = json.loads(request.body)
             if data.get('eventType') == 'PAYMENT_STATUS_CHANGED':
                 payload = data.get('data', {})
-                if payload.get('status') == 'DONE':
+                if payload.get('status') == SaleRecord.STATUS_DONE:
                     SaleRecord.objects.filter(
                         order_id=payload.get('orderId')
-                    ).update(status='DONE')
+                    ).update(status=SaleRecord.STATUS_DONE)
             return JsonResponse({'status': 'OK'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -144,7 +161,7 @@ class TossWebhookView(View):
 # 대시보드용 매출 집계 JSON API
 # ══════════════════════════════════════════════════════════════
 
-DRINK_NAMES = {'소주', '맥주', '콜라', '사이다'}
+DRINK_NAMES = settings.SALES_DRINK_NAMES
 
 
 class SalesDashboardAPIView(View):
@@ -152,26 +169,34 @@ class SalesDashboardAPIView(View):
     GET /sales/api/dashboard/
     대시보드 차트에 필요한 매출 집계 데이터를 JSON으로 반환한다.
     소주·맥주·콜라·사이다는 '주류/음료' 그룹으로 합산한다.
+    로그인한 사장님 소유 가게 기준으로 필터링한다.
     """
     def get(self, request):
         now         = timezone.now()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        week_ago    = now - timedelta(days=6)
 
-        done_qs = SaleRecord.objects.filter(status='DONE')
+        # 로그인한 사장님의 가게에 연결된 ManagedRestaurant 기준으로 필터
+        base_filter = {'status': SaleRecord.STATUS_DONE}
+        if request.user.is_authenticated:
+            base_filter['restaurant__public_restaurant__owner'] = request.user
+
+        done_qs = SaleRecord.objects.filter(**base_filter)
 
         # 이번 달 매출 합계
         monthly = done_qs.filter(
             created_at__gte=month_start
         ).aggregate(total=Sum('amount'))['total'] or 0
 
-        # 이번 달 식사 메뉴별 판매량 Top 5 (주류/음료 제외)
+        # 이번 달 식사 메뉴별 판매량 Top 5 (주류/음료 제외, 내 가게 한정)
+        top5_filter = {
+            'sale_record__status': SaleRecord.STATUS_DONE,
+            'sale_record__created_at__gte': month_start,
+        }
+        if request.user.is_authenticated:
+            top5_filter['sale_record__restaurant__public_restaurant__owner'] = request.user
         top5 = list(
             SaleItem.objects
-            .filter(
-                sale_record__status='DONE',
-                sale_record__created_at__gte=month_start,
-            )
+            .filter(**top5_filter)
             .exclude(menu_name__in=DRINK_NAMES)
             .values('menu_name')
             .annotate(total_qty=Sum('quantity'))
@@ -225,7 +250,7 @@ class SalesDetailView(TemplateView):
         else:
             prev_start = month_start.replace(month=month_start.month - 1)
 
-        all_items  = SaleItem.objects.filter(sale_record__status='DONE')
+        all_items  = SaleItem.objects.filter(sale_record__status=SaleRecord.STATUS_DONE)
         this_month = all_items.filter(sale_record__created_at__gte=month_start)
         prev_month = all_items.filter(
             sale_record__created_at__gte=prev_start,
@@ -289,14 +314,13 @@ class SalesDetailView(TemplateView):
             .order_by('month')
         )
 
-        rev_2025 = [
-            {'month': str(m['month'])[:7], 'rev': m['total_rev'] or 0}
-            for m in all_monthly_rev if str(m['month'])[:4] == '2025'
-        ]
-        rev_2026 = [
-            {'month': str(m['month'])[:7], 'rev': m['total_rev'] or 0}
-            for m in all_monthly_rev if str(m['month'])[:4] == '2026'
-        ]
+        rev_by_year: dict[str, list] = {}
+        for m in all_monthly_rev:
+            year = str(m['month'])[:4]
+            rev_by_year.setdefault(year, []).append({
+                'month': str(m['month'])[:7],
+                'rev':   m['total_rev'] or 0,
+            })
 
         chart_labels = [str(m['month'])[:7] for m in all_monthly_rev]
         chart_data   = [m['total_rev'] or 0 for m in all_monthly_rev]
@@ -310,8 +334,7 @@ class SalesDetailView(TemplateView):
             'change_up':           change_up,
             'monthly_menu_json':   json.dumps(monthly_menu_raw, ensure_ascii=False),
             'current_month_key':   month_key,
-            'rev_2025_json':       json.dumps(rev_2025, ensure_ascii=False),
-            'rev_2026_json':       json.dumps(rev_2026, ensure_ascii=False),
+            'rev_by_year_json':    json.dumps(rev_by_year, ensure_ascii=False),
             'chart_labels_json':   json.dumps(chart_labels, ensure_ascii=False),
             'chart_data_json':     json.dumps(chart_data, ensure_ascii=False),
         })
@@ -341,9 +364,9 @@ class RegisterManagedRestaurantView(View):
         if hasattr(pub, 'managed'):
             m = pub.managed
             return JsonResponse({
-                'status': 'already',
-                'message': f'이미 관리 매장으로 등록되어 있습니다.',
-                'admin_url': f'/admin/sales/managedrestaurant/{m.pk}/change/',
+                'status':    'already',
+                'message':   '이미 관리 매장으로 등록되어 있습니다.',
+                'admin_url': _managed_admin_url(m.pk),
             })
 
         # 공공 데이터에서 자동 입력
@@ -352,11 +375,11 @@ class RegisterManagedRestaurantView(View):
             name=pub.name,
             address=pub.address_road or pub.address_jibun or '',
             business_type=pub.business_type or '',
-            status='pending',
+            status=ManagedRestaurant.STATUS_PENDING,
             joined_at=timezone.now().date(),
         )
         return JsonResponse({
-            'status': 'created',
-            'message': f'"{pub.name}" 관리 매장으로 등록됐습니다. 어드민에서 사장님 정보를 추가해주세요.',
-            'admin_url': f'/admin/sales/managedrestaurant/{m.pk}/change/',
+            'status':    'created',
+            'message':   f'"{pub.name}" 관리 매장으로 등록됐습니다. 어드민에서 사장님 정보를 추가해주세요.',
+            'admin_url': _managed_admin_url(m.pk),
         })

@@ -1,0 +1,91 @@
+{% extends "management/base.html" %}
+{% load static humanize %}
+
+{% block mgmt_css %}<link rel="stylesheet" href="{% static 'css/management/panel.css' %}">{% endblock %}
+{% block page_title %}식당 관리{% endblock %}
+{% block page_sub %}공공데이터 연동 식당 전체 목록{% endblock %}
+
+{% block mgmt_content %}
+<div class="mgmt-stat-row">
+  <div class="mgmt-stat-card">
+    <div class="mgmt-stat-lbl">전체 식당</div>
+    <div class="mgmt-stat-val">{{ total|intcomma }}</div>
+    <div class="mgmt-stat-sub">공공데이터 기준</div>
+  </div>
+  <div class="mgmt-stat-card ok">
+    <div class="mgmt-stat-lbl">사장님 연동</div>
+    <div class="mgmt-stat-val">{{ linked|intcomma }}</div>
+    <div class="mgmt-stat-sub">오너 계정 연결됨</div>
+  </div>
+  <div class="mgmt-stat-card">
+    <div class="mgmt-stat-lbl">SNS 연동</div>
+    <div class="mgmt-stat-val">{{ sns|intcomma }}</div>
+  </div>
+  <div class="mgmt-stat-card warn">
+    <div class="mgmt-stat-lbl">위생 경고</div>
+    <div class="mgmt-stat-val">{{ hygiene_alert|intcomma }}</div>
+    <div class="mgmt-stat-sub">최근 14일 기준</div>
+  </div>
+  <div class="mgmt-stat-card">
+    <div class="mgmt-stat-lbl">골목장인 달성</div>
+    <div class="mgmt-stat-val">{{ alley|intcomma }}</div>
+  </div>
+</div>
+
+<form method="get" class="mgmt-filter-bar">
+  <input class="mgmt-search" name="q" value="{{ current_search }}" placeholder="식당명 검색…">
+  <button class="mgmt-filter-btn" type="submit">검색</button>
+  <span class="mgmt-filter-divider"></span>
+  <a class="mgmt-filter-btn {% if current_owner == 'all' %}active{% endif %}" href="?owner=all">전체</a>
+  <a class="mgmt-filter-btn {% if current_owner == 'linked' %}active{% endif %}" href="?owner=linked">사장님 연동</a>
+  <a class="mgmt-filter-btn {% if current_owner == 'unlinked' %}active{% endif %}" href="?owner=unlinked">미연동</a>
+</form>
+
+<div class="mgmt-table-wrap">
+  <table class="mgmt-table">
+    <thead>
+      <tr><th>식당명</th><th>업종</th><th>주소</th><th>사장님</th><th>SNS</th><th>위생경고</th><th>골목장인</th></tr>
+    </thead>
+    <tbody>
+      {% for r in restaurants %}
+      <tr data-status="{% if r.owner %}linked{% else %}unlinked{% endif %}">
+        <td><a class="mgmt-link" href="{% url 'public_restaurants:restaurant-detail-page' r.pk %}">{{ r.name }}</a></td>
+        <td class="mgmt-muted">{{ r.business_type|default:"—" }}</td>
+        <td class="mgmt-muted mgmt-td-ellipsis">{{ r.address_road|default:r.address_jibun|default:"—" }}</td>
+        <td>
+          {% if r.owner %}<span class="mgmt-badge ok">{{ r.owner.username }}</span>
+          {% else %}<span class="mgmt-badge neutral">미연동</span>{% endif %}
+        </td>
+        <td>{% if r.sns_connected %}<span class="mgmt-badge blue">연동</span>{% else %}<span class="mgmt-muted">—</span>{% endif %}</td>
+        <td>{% if r.ai_profile.hygiene_alert %}<span class="mgmt-badge bad">경고</span>{% else %}<span class="mgmt-muted">—</span>{% endif %}</td>
+        <td>{% if r.ai_profile.is_alley_eligible %}<span class="mgmt-badge purple">달성</span>{% else %}<span class="mgmt-muted">—</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7"><div class="mgmt-empty"><div class="mgmt-empty-icon">🏪</div>식당 데이터가 없습니다.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if page_obj.has_other_pages %}
+<div class="mgmt-pagination">
+  {% if page_obj.has_previous %}
+    <a class="mgmt-page-btn" href="?owner={{ current_owner }}&q={{ current_search }}&page={{ page_obj.previous_page_number }}">&#8249;</a>
+  {% endif %}
+  {% for p in page_nums %}
+    {% if p is None %}
+      <span class="mgmt-page-ellipsis">&#8230;</span>
+    {% elif p == page_obj.number %}
+      <span class="mgmt-page-btn active">{{ p }}</span>
+    {% else %}
+      <a class="mgmt-page-btn" href="?owner={{ current_owner }}&q={{ current_search }}&page={{ p }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}
+    <a class="mgmt-page-btn" href="?owner={{ current_owner }}&q={{ current_search }}&page={{ page_obj.next_page_number }}">&#8250;</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block mgmt_js %}<script src="{% static 'js/management/panel.js' %}"></script>{% endblock %}
